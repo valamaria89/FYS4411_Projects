@@ -34,7 +34,7 @@ void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int
            }
 
 //The loop over the variational parameter
-        for (int i=0; i<=numVar; i++) {
+        for (int var=0; var<=numVar; var++) {
             eng = eng2 = 0; accept =0; delta_e=0;
 
  //  initial trial position
@@ -78,11 +78,11 @@ void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int
          }
 
          // end of loop over MC trials
-        Etot[i] = eng/numMCCycles;
-        Etot2[i] = eng2/numMCCycles;
+        Etot[var] = eng/numMCCycles;
+        Etot2[var] = eng2/numMCCycles;
 
   //Increase the variational parameter
-        alpha+= i*deltaAlpha;
+        alpha+= var*deltaAlpha;
  }    // end of loop over variational  steps
 
 

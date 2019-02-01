@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <fstream>
 #include "time.h"
 #include "exercises.h"
 #include "matrix.h"
@@ -52,12 +53,14 @@ int main(){
        Etot = new double[numVar+1];
        Etot2 = new double[numVar+1];
        mc_sampling(seed, 0.001, dim, numOfPart, numMCCycles, numVar, Etot, Etot2);
-       cout << E_la << endl;
-
-       for (int i = 0; i <= numVar; i++){
-           cout << Etot[i] << endl;
+       ofstream myfile;
+       myfile.open("̃E_average.txt");
+       for (int E = 0; E <= numVar; E++){
+           myfile << Etot[E] << " " ;
 
        }
+       myfile.close();
+
 
 
 
