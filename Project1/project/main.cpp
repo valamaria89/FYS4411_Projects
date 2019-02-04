@@ -10,79 +10,70 @@ using namespace std;
 
 
 
-void initialise(int&, int&, int&) ;
+void initialise(int&, int&, int&,int& ) ;
+
 
 int main(){
-   /*Matrix a(5,2);
-    for (int i = 0; i < 5; i++){
-        for (int j = 0; j < 2; j++){
-            a.set_Elem(i, j, i);
-            cout << a.get_Elem(i, j) << ", ";
-        }
-
-         cout << endl;
-    }*/
-
 
     std::mt19937_64 seed(1234);
 
-    //The number of dimensions, particles, MC cycles
-       int dim, numOfPart, numMCCycles;
+    //The number of dimensions, particles, MC cycles and choise parameter
+       int dim, numOfPart, numMCCycles,ind;
 
     //The number of variational parameters
-       int numVar=5;
+       int numVar=50;
+       double stepSize=0.00001;
 
-   //Initialise the number of dimensions, particles, MC cycles
-       initialise(dim, numOfPart, numMCCycles);
-          cout << dim << endl;
-          cout << numOfPart<< endl;
-          cout << numMCCycles << endl;
-
-
-            cout << endl;
-      Matrix r(numOfPart, dim);
-       for (int i = 0; i < numOfPart; i++){
-           for (int j = 0; j < dim ; j++){
-               r.set_Elem(i, j, 2);
-           }}
-       double alpha = 1;
-       double wf1 = wavefunction(r, alpha, dim, numOfPart);
-       double E_l = local_energy_num(r, alpha, wf1, dim, numOfPart);
-       double E_la = local_energy_analytic(r, alpha, dim, numOfPart);
+   //Initialise the number of dimensions, particles, MC cycles and energy arrays
+       initialise(dim, numOfPart, numMCCycles, ind);
        double *Etot, *Etot2;
        Etot = new double[numVar+1];
        Etot2 = new double[numVar+1];
-       mc_sampling(seed, 0.001, dim, numOfPart, numMCCycles, numVar, Etot, Etot2);
-       ofstream myfile;
-       myfile.open("̃E_average.txt");
-       for (int E = 0; E <= numVar; E++){
-           myfile << Etot[E] << " " ;
+clock_t time_start = clock();
+   //MC cycles
+       mc_sampling(seed, stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind);
 
+       ofstream myfile;
+       myfile.open("E_average.txt");
+       myfile  <<"Variational parameter E E2 variance " << endl ;
+       for (int E = 0; E <= numVar; E++){
+           myfile << 0.001+0.001*E <<" "<< Etot[E] << endl ;
+           //myfile << " variance"<< Etot2[E]  << endl ;
        }
        myfile.close();
+       delete [] Etot;
+       delete [] Etot2;
 
 
+       Matrix rnew(numOfPart, dim);
 
-
-/////////////////////////////////////////
-
-
-
+     for (int i = 0; i < numOfPart; i++){
+              for (int j = 0; j < dim; j++){
+                  rnew.set_Elem(i ,j, 1);
+              }
+          }
+     double wf=wavefunction(rnew,0.1,dim,numOfPart);
+     double ander= deriv_analytic(rnew, 0.1, dim, numOfPart);
+      double numder= deriv_num(rnew, 0.1, wf, dim, numOfPart);
+     cout << ander <<" and "<<numder<< endl;
+     cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;
     return 0;
 }
 
 // Beginning of function initialise
-void initialise(int& dim, int& numOfPart, int& numMCCycles)
-{
-  cout << "Insert the number of dimensions ";
+void initialise(int& dim, int& numOfPart, int& numMCCycles, int& ind){
+
+  cout << "Insert the number of dimensions = ";
   cin >> dim;
-   cout << endl;
+  cout << endl;
   cout << "Insert the number of particles = ";
   cin >> numOfPart;
-    cout << endl;
+  cout << endl;
   cout << "Insert the number of MC cycles = ";
   cin >> numMCCycles;
-    cout <<  endl;
-
+  cout <<  endl;
+  cout << "1.Analytical - type 1"<<endl;
+  cout << "1.Numerical - type 2"<<endl;
+  cin >> ind;
 }
 // end of function initialise
