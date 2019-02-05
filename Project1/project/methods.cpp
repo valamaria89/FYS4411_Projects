@@ -1,4 +1,4 @@
-#include "methods.h"
+﻿#include "methods.h"
 #include "matrix.h"
 #include <random>
 
@@ -15,7 +15,7 @@ std::uniform_real_distribution<double> RNG(0.0,1.0);
 void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind)
 {
 //The variational parameter
-        double alpha=0.001, deltaAlpha=0.001;
+        double alpha=0.01, deltaAlpha=0.01;
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
 
@@ -40,7 +40,8 @@ void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int
  //  initial trial position
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                   rold.set_Elem( i, j, step*RNG(seed));
+                   rold.set_Elem( i, j, 1*RNG(seed));
+                   //cout<< rold.get_Elem( i, j)<<endl;
                  }
            }
 
@@ -74,17 +75,16 @@ void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int
     else
   delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
 // update energies
-    eng = eng + delta_e;
-    eng2 = eng2+(delta_e)*(delta_e);
+    eng  += delta_e;
+    eng2 += delta_e*delta_e;
          }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
 //cout << " " << accept <<endl;
   //Increase the variational parameter
-        alpha+= var*deltaAlpha;
+        alpha += deltaAlpha;
  }    // end of loop over variational  steps
-
 
  }
 
@@ -104,7 +104,7 @@ double wavefunction(Matrix r, double alpha, int dim, int NumOfPart){
 
 //The numerical calculation of local energy
 double local_energy_num(Matrix r, double alpha, double wfold, int dim, int numOfPart){
-      double  wfminus, wfplus, ekin=0,  radsq = 0;
+      double  wfminus, wfplus, ekin=0, epot=0, eloc=0, radsq = 0;
       Matrix rplus(numOfPart, dim), rminus(numOfPart, dim);
 
     for (int i = 0; i < numOfPart; i++){
@@ -125,61 +125,29 @@ double local_energy_num(Matrix r, double alpha, double wfold, int dim, int numOf
                  rminus.set_Elem(i, j, r.get_Elem(i,j));
              }
          }
-      ekin = ekin*h2/wfold;
+      ekin = -0.5*ekin*h2/wfold;
 
-    return ekin;
-}
+      epot = radsq/2;
+      eloc = epot+ekin;
 
-//The nanalytical calculation of local energy
+      return eloc;
+  }
+
+
+//The alytical calculation of local energy
 double local_energy_analytic(Matrix r, double alpha, int dim, int numOfPart){
-    double  ekin = 0, radsq = 0;
+    double  ekin = 0,epot=0, eloc=0, radsq = 0;
 
     for(int i = 0; i < numOfPart; i++){
         for(int j = 0; j < dim; j++){
-            radsq = r.get_Elem(i,j)*r.get_Elem(i,j);
+            radsq += r.get_Elem(i,j)*r.get_Elem(i,j);
         }
     }
-    ekin = 4*alpha*alpha*radsq-2*alpha*dim*numOfPart;
+    ekin = -2*alpha*alpha*radsq+alpha*dim*numOfPart;
 
-    return ekin;
+    epot = radsq/2;
+    eloc = epot+ekin;
+    return eloc;
 }
 
-double deriv_num(Matrix r, double alpha, double wfold, int dim, int numOfPart){
-      double  wfminus, wfplus, ekin=0,  radsq = 0;
-      Matrix rplus(numOfPart, dim), rminus(numOfPart, dim);
 
-    for (int i = 0; i < numOfPart; i++){
-             for (int j = 0; j < dim; j++){
-                 rplus.set_Elem(i,j, r.get_Elem(i,j));
-                 rminus.set_Elem(i, j, r.get_Elem(i,j));
-                 radsq  += r.get_Elem(i,j)*r.get_Elem(i, j);
-             }
-         }
-    for (int i = 0; i < numOfPart; i++){
-             for (int j = 0; j < dim; j++){
-                 rplus.set_Elem(i,j, r.get_Elem(i,j)+h);
-                 rminus.set_Elem(i, j, r.get_Elem(i,j)-h);
-                 wfminus = wavefunction(rminus, alpha, dim, numOfPart);
-                 wfplus  = wavefunction(rplus, alpha, dim, numOfPart);
-                 ekin += (wfminus+wfplus-2*wfold);
-                 rplus.set_Elem(i,j, r.get_Elem(i,j));
-                 rminus.set_Elem(i, j, r.get_Elem(i,j));
-             }
-         }
-      ekin = ekin*h2/wfold;
-
-    return ekin;
-}
-
-//The nanalytical calculation of local energy
-double deriv_analytic(Matrix r, double alpha, int dim, int numOfPart){
-    double eloc = 0, ekin = 0, epot = 0, radsq = 0;
-
-    for(int i = 0; i < numOfPart; i++){
-        for(int j = 0; j < dim; j++){
-            radsq = r.get_Elem(i,j)*r.get_Elem(i,j);
-         };
-    };
-    ekin = (4*alpha*alpha*radsq-2*alpha*dim*numOfPart);
-    return ekin;
-}
