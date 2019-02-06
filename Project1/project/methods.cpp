@@ -1,21 +1,21 @@
 ﻿#include "methods.h"
 #include "matrix.h"
 #include <random>
-
+#include <cassert>
 using namespace std;
 
 // Uniform distribution for s in [0, 1]
-std::uniform_real_distribution<double> RNG(0.0,1.0);
+//std::uniform_real_distribution<double> RNG(0.0,1.0);
 // Constants
-#define h 0.001
-#define h2 1000000
+#define h 0.0001
+#define h2 100000000
 #define mass 1
 #define omega 1
 
-void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind)
+void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha)
 {
 //The variational parameter
-        double alpha=0.01, deltaAlpha=0.01;
+       // double alpha=0.50, deltaAlpha=0.01;
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
 
@@ -30,6 +30,10 @@ void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int
                }
            }
 
+      random_device rd;
+      mt19937_64 gen(rd());
+      uniform_real_distribution<double> RNG(0.0,1.0);
+
 //The loop over the variational parameter
         for (int var=0; var<=numVar; var++) {
             eng = 0;
@@ -40,48 +44,55 @@ void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int
  //  initial trial position
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                   rold.set_Elem( i, j, 1*RNG(seed));
-                   //cout<< rold.get_Elem( i, j)<<endl;
+                   rold.set_Elem( i, j, step*(RNG(gen)-0.5));
                  }
            }
 
-  //  initial trial WF
+ // initial trial WF
     wfold = wavefunction(rold, alpha, dim, numOfPart);
 
  //The MC Cycle
     for (int cycl = 1; cycl <= numMCCycles; cycl++) {
 
  // We set the new position
+
+
+        // double rsq=0;
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
-                  rnew.set_Elem(i, j, rold.get_Elem(i,j)+step*RNG(seed));
+               rnew.set_Elem(i, j, rold.get_Elem(i,j)+step*(RNG(gen)-0.5));
                }
          }
     wfnew = wavefunction(rnew, alpha, dim, numOfPart);
  // Metropolis test
 //cout << wfnew<<" " << wfold <<endl;
-    if(RNG(seed) <= wfnew*wfnew/wfold/wfold ) {
+    if(RNG(gen) < wfnew*wfnew/(wfold*wfold) ) {
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
                     rold.set_Elem(i, j, rnew.get_Elem(i,j));
                  }
            }
-  wfold = wfnew;
+  wfold=wfnew;
   accept++;
     }
+
  // compute local energy
-    if (ind==1)
-  delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
-    else
-  delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+    if (ind==1){
+        delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
+    }
+    else{
+        delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+    }
 // update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
+
          }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
+   // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-//cout << " " << accept <<endl;
+cout << " " << accept <<endl;
   //Increase the variational parameter
         alpha += deltaAlpha;
  }    // end of loop over variational  steps

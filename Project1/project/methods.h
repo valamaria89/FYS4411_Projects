@@ -4,7 +4,7 @@
 #include <iostream>
 #include "matrix.h"
 
-void mc_sampling(std::mt19937_64& seed, double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind);
+void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind, double alpha, double deltaAlpha);
 double wavefunction(Matrix r, double alpha, int dim, int NumOfPart);
 double local_energy_num(Matrix r, double alpha, double wfold, int dim, int numOfPart);
 double local_energy_analytic(Matrix r, double alpha, int dim, int numOfPart);

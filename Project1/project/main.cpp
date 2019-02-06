@@ -15,13 +15,13 @@ void initialise(int&, int&, int&,int&,double& ) ;
 
 int main(){
 
-    std::mt19937_64 seed(1234);
+
 
     //The number of dimensions, particles, MC cycles and choise parameter
        int dim, numOfPart, numMCCycles,ind;
 
     //The number of variational parameters
-       int numVar=100;
+       int numVar=20;
        double stepSize;
 
    //Initialise the number of dimensions, particles, MC cycles and energy arrays
@@ -31,13 +31,14 @@ int main(){
        Etot2 = new double[numVar+1];
 clock_t time_start = clock();
    //MC cycles
-       mc_sampling(seed, stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind);
+double alpha=0.40, deltaAlpha=0.01;
+       mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha);
 
        ofstream myfile;
        myfile.open("E_average.txt");
        myfile  <<"Variational parameter E E2 variance " << endl ;
        for (int E = 0; E <= numVar; E++){
-           myfile << 0.01+0.01*E <<" "<< Etot[E] << endl ;
+           myfile << alpha+deltaAlpha*E <<" "<< Etot[E] << endl ;
            myfile << "                variance "<< Etot2[E]-Etot[E]*Etot[E]  << endl ;
        }
        myfile.close();
@@ -46,6 +47,17 @@ clock_t time_start = clock();
 
      cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;
 
+
+    /* double testen;
+     testen=local_energy_analytic(rtest,0.5,dim,numOfPart);
+for(int k=0;k<=100;k++){
+    for (int i = 0; i < numOfPart; i++) {
+         for (int j = 0; j < dim; j++){
+               rtest.set_Elem( i, j, 0.0+0.01*k);
+               cout<< " Energy= "<< local_energy_analytic(rtest,0.75,dim,numOfPart)<<endl;
+             }
+       }
+     }*/
 
     return 0;
 }
