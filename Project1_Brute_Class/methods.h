@@ -69,7 +69,7 @@ public:
     //void setEtot(int var, double value){Etot[var] = value;};
     //double getEtot(int var){return Etot[var];};
     void mc_sampling();
-
+    double getFunc(mat r){return local_energy_analytic(r);};
 
     //void mc_sampling_IMS();
     //void QuantumForce(Matrix r, Matrix QForce);

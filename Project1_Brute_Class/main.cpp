@@ -1,12 +1,19 @@
 #include <iostream>
 #include <random>
 #include <fstream>
+#include <cmath>
 #include "time.h"
 #include "exercises.h"
 #include "matrix.h"
 #include "methods.h"
 
+
 using namespace std;
+
+random_device rd;
+mt19937_64 gen(rd());
+uniform_real_distribution<double> RNG(0.0,1.0);
+normal_distribution<double> ND(0.0,1.0);
 
 
 
@@ -29,10 +36,24 @@ int main(){
 //Time start
        clock_t time_start = clock();
 
-       Methods ourMC(1,1,1000000,10,1, 1, 0.1, 0.1);
+       Methods ourMC(1,1,1000000,10,0.1, 2, 0.1, 0.1);
        ourMC.mc_sampling();
-       ourMC.writeToFile();
-
+       //ourMC.writeToFile();
+       /*for (int i = 0; i < 1000; i++){
+            mat r= zeros<mat>(1, 1);
+            for (int i = 0; i < 1; i++) {
+                for (int j = 0; j < 1; j++){
+                    r(i,j) = 0.1*(RNG(gen)-0.5);
+            }
+       }
+        double eloc = ourMC.getFunc(r);
+        if (abs(eloc - 0.5) < 1e-20){
+           cout << "fail" << endl;
+           break;
+       }
+       }
+      // cout << "Alpha: " << alpha << "    " <<"Energy: " << eloc << endl;
+*/
 
 
        cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;

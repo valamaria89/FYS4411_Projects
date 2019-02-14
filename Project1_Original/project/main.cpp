@@ -34,15 +34,7 @@ int main(){
 
 //MC cycles
        mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha);
-
-       ofstream myfile;
-       myfile.open("E_average_new.txt");
-       myfile  <<"Variational parameter E E2 variance " << endl ;
-       for (int E = 0; E <= numVar; E++){
-           myfile << alpha+deltaAlpha*E <<" "<< Etot[E] << endl ;
-           myfile << "                variance "<< Etot2[E]-Etot[E]*Etot[E]  << endl ;
-       }
-       myfile.close();
+       writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
        delete [] Etot;
        delete [] Etot2;
 

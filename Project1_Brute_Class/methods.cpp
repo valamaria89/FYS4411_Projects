@@ -14,7 +14,7 @@ using namespace std;
 //Monte Carlo cycles
 void Methods::mc_sampling()
 {
-  //cout<< dim <<" "<<numOfPart<<" "<<numMCCycles<< " "<<numVar<<" "<<step<<" "<<ISvsBrute<< " " << alpha << " " << deltaAlpha << endl;
+  cout<< dim <<" "<<numOfPart<<" "<<numMCCycles<< " "<<numVar<<" "<<step<<" "<<ISvsBrute<< " " << alpha << " " << deltaAlpha << endl;
 //The variational parameter
         double wfnew = 0, wfold = 0, eng, eng2, delta_e;
         int accept;
@@ -165,6 +165,8 @@ double Methods::local_energy_analytic(const mat &r){
 
     epot = radsq/2;
     eloc = epot+ekin;
+
+
     return eloc;
 }
 

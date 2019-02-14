@@ -1,5 +1,6 @@
 ﻿#include "methods.h"
 #include "matrix.h"
+#include <fstream>
 #include <random>
 #include <cassert>
 using namespace std;
@@ -93,7 +94,7 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
     Etot[var] = eng/numMCCycles;
    // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-cout << " " << accept <<endl;
+//cout << " " << accept <<endl;
 //cout << " " << Etot[var] <<endl;
   //Increase the variational parameter
         alpha += deltaAlpha;
@@ -294,6 +295,23 @@ cout << " " << accept <<endl;
  }    // end of loop over variational  steps
 
  }
+
+void writeToFile( string x, double *E1, double *E2, int numVar, double alpha, double deltaAlpha)
+{
+
+    string a;
+    //cout << "What are we looking at?" << endl;
+    ofstream myfile;
+    myfile.open(x);
+    //cin >> a;
+    //myfile  << a << endl;
+
+    for (int E = 0; E <= numVar; E++){
+        myfile << alpha+deltaAlpha*E <<" "<< E1[E] << endl ;
+        myfile << "                variance "<<  E2[E]-E1[E]*E1[E] << endl ;
+    }
+    myfile.close();
+}
 
 
 
