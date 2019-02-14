@@ -15,27 +15,28 @@ void initialise(int&, int&, int&,int&,double& ) ;
 
 int main(){
 
-
-
-    //The number of dimensions, particles, MC cycles and choise parameter
+//The number of dimensions, particles, MC cycles and choise parameter
        int dim, numOfPart, numMCCycles,ind;
 
-    //The number of variational parameters
-       int numVar=20;
+//The number of variational parameters and variational parameter
+       int numVar=10;
        double stepSize;
+       double alpha=0.1, deltaAlpha=0.1;
 
-   //Initialise the number of dimensions, particles, MC cycles and energy arrays
+//Initialise the number of dimensions, particles, MC cycles and energy arrays
        initialise(dim, numOfPart, numMCCycles, ind, stepSize);
        double *Etot, *Etot2;
        Etot = new double[numVar+1];
        Etot2 = new double[numVar+1];
-clock_t time_start = clock();
-   //MC cycles
-double alpha=0.40, deltaAlpha=0.01;
+
+//Time start
+       clock_t time_start = clock();
+
+//MC cycles
        mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha);
 
        ofstream myfile;
-       myfile.open("E_average.txt");
+       myfile.open("E_average_new.txt");
        myfile  <<"Variational parameter E E2 variance " << endl ;
        for (int E = 0; E <= numVar; E++){
            myfile << alpha+deltaAlpha*E <<" "<< Etot[E] << endl ;
@@ -45,19 +46,8 @@ double alpha=0.40, deltaAlpha=0.01;
        delete [] Etot;
        delete [] Etot2;
 
-     cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;
+       cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;
 
-
-    /* double testen;
-     testen=local_energy_analytic(rtest,0.5,dim,numOfPart);
-for(int k=0;k<=100;k++){
-    for (int i = 0; i < numOfPart; i++) {
-         for (int j = 0; j < dim; j++){
-               rtest.set_Elem( i, j, 0.0+0.01*k);
-               cout<< " Energy= "<< local_energy_analytic(rtest,0.75,dim,numOfPart)<<endl;
-             }
-       }
-     }*/
 
     return 0;
 }

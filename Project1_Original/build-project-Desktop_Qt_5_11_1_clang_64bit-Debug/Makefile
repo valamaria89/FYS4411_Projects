@@ -216,6 +216,7 @@ DIST          = /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/spec_pre.
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/qt_config.prf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/macx-clang/qmake.conf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/spec_post.prf \
+		../project/.qmake.stash \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/exclusive_builds.prf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/mac/sdk.prf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/toolchain.prf \
@@ -419,6 +420,7 @@ Makefile: ../project/project.pro /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/m
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/qt_config.prf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/macx-clang/qmake.conf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/exclusive_builds.prf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/mac/sdk.prf \
 		/Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/toolchain.prf \
@@ -602,6 +604,7 @@ Makefile: ../project/project.pro /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/m
 /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/qt_config.prf:
 /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/macx-clang/qmake.conf:
 /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/exclusive_builds.prf:
 /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/mac/sdk.prf:
 /Users/markvanhoff/Qt/5.11.1/clang_64/mkspecs/features/toolchain.prf:
@@ -647,6 +650,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) $(TARGET) 
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 
