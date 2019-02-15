@@ -1,2 +1,2 @@
 # FYS4410-Comphys2
-A repository containing everything related to the course  FYS4411 - Computational physics II: Quantum mechanical systems. By Vala and Maria.
+A repository containing everything related to the course  FYS4411 - Computational physics II: Quantum mechanical systems.With love from Erlend.
