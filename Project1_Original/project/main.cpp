@@ -19,10 +19,11 @@ int main(){
        int dim, numOfPart, numMCCycles,ind;
 
 //The number of variational parameters and variational parameter
-       int numVar=10;
+       //int numVar=10;
+       int numVar=0;
        double stepSize;
-       double alpha=0.1, deltaAlpha=0.1;
-
+       //double alpha=0.1, deltaAlpha=0.1;
+       double alpha=0.49, deltaAlpha=0.01;
 //Initialise the number of dimensions, particles, MC cycles and energy arrays
        initialise(dim, numOfPart, numMCCycles, ind, stepSize);
        double *Etot, *Etot2;

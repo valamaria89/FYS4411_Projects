@@ -23,6 +23,8 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
 //Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
+        ofstream fileblock;
+        fileblock.open("E_block.txt");
 
       for (int i = 0; i < numOfPart; i++){
                for (int j = 0; j < dim; j++){
@@ -88,18 +90,25 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
 // update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
+    //if(alpha==0.5){
+    if(!(cycl % 1000))
+       {
+        fileblock  <<eng/cycl<< endl
+       ;}
+       //;};
 
-         }
+        }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
    // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-//cout << " " << accept <<endl;
+    cout << " " << accept <<endl;
 //cout << " " << Etot[var] <<endl;
   //Increase the variational parameter
         alpha += deltaAlpha;
- }    // end of loop over variational  steps
 
+ }    // end of loop over variational  steps
+        fileblock.close();
  }
 
 //The wave function without interaction
