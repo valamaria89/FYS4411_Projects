@@ -13,30 +13,24 @@ using namespace std;
 #define mass 1
 #define omega 1
 
-void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int Thermalization)
+void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization)
 {
 //The variational parameter
-       // double alpha=0.50, deltaAlpha=0.01;
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
+        mat rOld;
+        mat rNew;
 
 //Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
-        Matrix rold(numOfPart, dim);
-        Matrix rnew(numOfPart, dim);
+        rOld = zeros<mat>(numOfPart, dim);
+        rNew = zeros<mat>(numOfPart, dim);
+
         ofstream fileblock;
         fileblock.open("E_block.txt");
 
-      for (int i = 0; i < numOfPart; i++){
-               for (int j = 0; j < dim; j++){
-                   rold.set_Elem(i, j, 0);
-                   rnew.set_Elem(i ,j, 0);
-
-               }
-           }
-
-      random_device rd;
-      mt19937_64 gen(rd());
-      uniform_real_distribution<double> RNG(0.0,1.0);
+        random_device rd;
+        mt19937_64 gen(rd());
+        uniform_real_distribution<double> RNG(0.0,1.0);
 
 //The loop over the variational parameter
         for (int var=0; var<=numVar; var++) {
@@ -48,81 +42,77 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
  //  initial trial position
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                   rold.set_Elem( i, j, step*(RNG(gen)-0.5));
+                    rOld(i,j) = step*(RNG(gen)-0.5);
                  }
            }
 
  // initial trial WF
-    wfold = wavefunction(rold, alpha, dim, numOfPart);
+    wfold = wavefunction(rOld, alpha, dim, numOfPart);
     //cout<< wfold<<endl;
 
  //The MC Cycle
-    for (int cycl = 1; cycl <= numMCCycles+Thermalization; cycl++) {
+    for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
-
-
-        // double rsq=0;
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
-               rnew.set_Elem(i, j, rold.get_Elem(i,j)+step*(RNG(gen)-0.5));
+               rNew(i,j) = rOld(i,j) + step*(RNG(gen)-0.5);
                }
          }
-    wfnew = wavefunction(rnew, alpha, dim, numOfPart);
+    wfnew = wavefunction(rNew, alpha, dim, numOfPart);
 
  // Metropolis test
-//cout << wfnew<<" " << wfold <<endl;
     if(RNG(gen) < wfnew*wfnew/(wfold*wfold)){
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                    rold.set_Elem(i, j, rnew.get_Elem(i,j));
+                    rOld(i,j) = rNew(i,j);
                  }
            }
   wfold=wfnew;
   accept++;
     }
-    if (cycl > Thermalization){
+    if (cycl > thermalization){
  // compute local energy
         if (ind==1){
-            delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
+            delta_e = local_energy_analytic(rOld, alpha, dim, numOfPart);
     }
         else{
-            delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+            delta_e = local_energy_num(rOld, alpha, wfold, dim, numOfPart);
     }
 // update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
 
-    //if(alpha==0.5){
-    if(!(cycl % 1000)){
+    if(alpha==0.5){
+    if(!((cycl) % 1000)){
 
         fileblock  <<eng/cycl<< endl;
         }
-       //;};
+       ;};
     }
 
         }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
-   // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-   //' cout << " " << accept <<endl;
-//cout << " " << Etot[var] <<endl;
-  //Increase the variational parameter
-        alpha += deltaAlpha;
+    cout << " " << accept <<endl;
 
- }    // end of loop over variational  steps
+//Increase the variational parameter
+        alpha += deltaAlpha;
+ }
+
+// end of loop over variational  steps
         fileblock.close();
 
 }
 //The wave function without interaction
-double wavefunction(Matrix r, double alpha, int dim, int NumOfPart){
+double wavefunction(mat r, double alpha, int dim, int NumOfPart){
 
       double wf=0, r_sqr=0;
 
       for (int i = 0; i < NumOfPart; i++) {
         for (int j = 0; j < dim; j++) {
-          r_sqr  += r.get_Elem(i,j)*r.get_Elem(i,j);
+          r_sqr  += r(i,j)*r(i,j);
         }
       }
       wf = exp(-alpha*r_sqr) ;
@@ -130,26 +120,30 @@ double wavefunction(Matrix r, double alpha, int dim, int NumOfPart){
     }
 
 //The numerical calculation of local energy
-double local_energy_num(Matrix r, double alpha, double wfold, int dim, int numOfPart){
+double local_energy_num(mat r, double alpha, double wfold, int dim, int numOfPart){
       double  wfminus, wfplus, ekin=0, epot=0, eloc=0, radsq = 0;
-      Matrix rplus(numOfPart, dim), rminus(numOfPart, dim);
+      mat rplus(numOfPart, dim), rminus(numOfPart, dim);
+
+
+      rplus = zeros<mat>(numOfPart, dim);
+      rminus = zeros<mat>(numOfPart, dim);
+      rplus = r;
+      rminus = r;
 
     for (int i = 0; i < numOfPart; i++){
              for (int j = 0; j < dim; j++){
-                 rplus.set_Elem(i,j, r.get_Elem(i,j));
-                 rminus.set_Elem(i, j, r.get_Elem(i,j));
-                 radsq  += r.get_Elem(i,j)*r.get_Elem(i, j);
+                 radsq  += r(i,j)*r(i, j);
              }
          }
     for (int i = 0; i < numOfPart; i++){
              for (int j = 0; j < dim; j++){
-                 rplus.set_Elem(i,j, r.get_Elem(i,j)+h);
-                 rminus.set_Elem(i, j, r.get_Elem(i,j)-h);
+                 rplus(i,j) += h;
+                 rminus(i,j) -= h;
                  wfminus = wavefunction(rminus, alpha, dim, numOfPart);
                  wfplus  = wavefunction(rplus, alpha, dim, numOfPart);
                  ekin += (wfminus+wfplus-2*wfold);
-                 rplus.set_Elem(i,j, r.get_Elem(i,j));
-                 rminus.set_Elem(i, j, r.get_Elem(i,j));
+                 rplus (i,j) = r(i,j);
+                 rminus(i,j)=  r(i,j);
              }
          }
       ekin = -0.5*ekin*h2/wfold;
@@ -162,12 +156,12 @@ double local_energy_num(Matrix r, double alpha, double wfold, int dim, int numOf
 
 
 //The alytical calculation of local energy
-double local_energy_analytic(Matrix r, double alpha, int dim, int numOfPart){
+double local_energy_analytic(mat r, double alpha, int dim, int numOfPart){
     double  ekin = 0,epot=0, eloc=0, radsq = 0;
 
     for(int i = 0; i < numOfPart; i++){
         for(int j = 0; j < dim; j++){
-            radsq += r.get_Elem(i,j)*r.get_Elem(i,j);
+            radsq += r(i,j)*r(i,j);
         }
     }
     ekin = -2*alpha*alpha*radsq+alpha*dim*numOfPart;
@@ -177,34 +171,33 @@ double local_energy_analytic(Matrix r, double alpha, int dim, int numOfPart){
     return eloc;
 }
 
-void QuantumForce(Matrix r, Matrix QForce, int dim, int numOfPart, double alpha){
-    Matrix rplus(numOfPart, dim), rminus(numOfPart, dim);
-    for (int i = 0; i < numOfPart; i++){
-             for (int j = 0; j < dim; j++){
-                 rplus.set_Elem(i,j, r.get_Elem(i,j));
-                 rminus.set_Elem(i, j, r.get_Elem(i,j));
-             }
-    }
+void QuantumForce(mat r, mat QForce, int dim, int numOfPart, double alpha){
+    mat rplus, rminus;
+        rplus = zeros<mat>(numOfPart, dim);
+        rminus = zeros<mat>(numOfPart, dim);
+        rplus = r;
+        rminus = r;
+
     double wfold ;
     wfold=wavefunction(r, alpha, dim, numOfPart);
     double  wfminus = 0, wfplus = 0;
 
     for (int i = 0; i < numOfPart; i++){
              for (int j = 0; j < dim; j++){
-                 rplus.set_Elem(i,j, r.get_Elem(i,j)+h);
-                 rminus.set_Elem(i, j, r.get_Elem(i,j)-h);
+                 rplus(i,j) += h;
+                 rminus(i,j) -= h;
                  wfminus = wavefunction(rminus, alpha, dim, numOfPart);
                  wfplus  = wavefunction(rplus, alpha, dim, numOfPart);
-                 QForce.set_Elem(i, j, (wfplus-wfminus)/(wfold*h));
-                 rplus.set_Elem(i,j, r.get_Elem(i,j));
-                 rminus.set_Elem(i, j, r.get_Elem(i,j));
+                 QForce(i,j)= (wfplus-wfminus)/(wfold*h);
+                 rplus (i,j) = r(i,j);
+                 rminus(i,j)=  r(i,j);
           }
      }
 }
 
 
 
-void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int Thermalization)
+void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization)
 {
 //The variational parameter
        // double alpha=0.50, deltaAlpha=0.01;
@@ -212,20 +205,17 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
         int accept;
 
 //Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
-        Matrix rold(numOfPart, dim);
-        Matrix rnew(numOfPart, dim);
-        Matrix QForceNew(numOfPart, dim);
-        Matrix QForceOld(numOfPart, dim);
+        mat rOld;
+        mat rNew;
+        mat QFOld;
+        mat QFNew;
 
 
-      for (int i = 0; i < numOfPart; i++){
-               for (int j = 0; j < dim; j++){
-                   rold.set_Elem(i,j, 0);
-                   rnew.set_Elem(i,j, 0);
-                   QForceNew.set_Elem(i,j,0);
-                   QForceOld.set_Elem(i,j, 0);
-               }
-           }
+        rOld = zeros<mat>(numOfPart, dim);
+        rNew = zeros<mat>(numOfPart, dim);
+
+        QFOld = zeros<mat>(numOfPart, dim);
+        QFNew = zeros<mat>(numOfPart, dim);
 
       random_device rd;
       mt19937_64 gen(rd());
@@ -242,33 +232,33 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
  //  initial trial position
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                   rold.set_Elem( i, j, sqrt(timestep)*(ND(gen)));
+                    rOld(i,j) = sqrt(timestep)*(ND(gen));
                  }
            }
 
  // initial trial WF
-    wfold = wavefunction(rold, alpha, dim, numOfPart);
-    QuantumForce(rold, QForceOld, dim, numOfPart, alpha);
-    // QForceOld =
+    wfold = wavefunction(rOld, alpha, dim, numOfPart);
+    QuantumForce(rOld, QFOld, dim, numOfPart, alpha);
 
- //The MC Cycle
-    for (int cycl = 1; cycl <= numMCCycles+Thermalization; cycl++) {
+
+ //The MC сycle
+    for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
 
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
-               rnew.set_Elem(i, j, rold.get_Elem(i,j)+sqrt(timestep)*ND(gen)+0.5*QForceOld.get_Elem(i,j)*timestep);
+               rNew(i,j) = rOld(i,j) + sqrt(timestep)*ND(gen)+0.5*QFOld(i,j)*timestep;
                }
          }
 
-    wfnew = wavefunction(rnew, alpha, dim, numOfPart);
-    QuantumForce(rnew, QForceNew, dim, numOfPart, alpha);
+    wfnew = wavefunction(rNew, alpha, dim, numOfPart);
+    QuantumForce(rNew, QFNew, dim, numOfPart, alpha);
     double GreenFunction = 0;
      for (int i = 0; i < numOfPart; i++) {
          for (int j = 0; j < dim; j++){
 
-             GreenFunction += 0.5*(QForceOld.get_Elem(i,j) + QForceNew.get_Elem(i,j))*(0.25*timestep*(QForceOld.get_Elem(i, j)-QForceNew.get_Elem(i, j))+rold.get_Elem(i, j) - rnew.get_Elem(i,j));
+             GreenFunction += 0.5*(QFOld(i,j) + QFNew(i,j))*(0.25*timestep*(QFOld(i, j)-QFNew(i, j))+rOld(i, j) - rNew(i,j));
          }
      }
      GreenFunction = exp(GreenFunction);
@@ -278,32 +268,31 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
     if(RNG(gen) <= GreenFunction*wfnew*wfnew/(wfold*wfold) ) {
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                    rold.set_Elem(i, j, rnew.get_Elem(i,j));
-                    QForceOld.set_Elem(i, j, QForceNew.get_Elem(i,j));
+                 rOld(i,j) = rNew(i,j);
+                 QFOld(i,j) = QFNew(i,j);
                  }
            }
   wfold=wfnew;
   accept++;
     }
-    //if (cycl > Thermalization){
+    if (cycl > thermalization){
  // compute local energy
         if (ind==1){
-            delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
+            delta_e = local_energy_analytic(rOld, alpha, dim, numOfPart);
         }
         else{
-            delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+            delta_e = local_energy_num(rOld, alpha, wfold, dim, numOfPart);
         }
 // update energies
         eng  += delta_e;
         eng2 += delta_e*delta_e;
 
-        //}
+        }
         }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
-   // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-//cout << " " << accept <<endl;
+    cout << " " << accept <<endl;
 
   //Increase the variational parameter
         alpha += deltaAlpha;
