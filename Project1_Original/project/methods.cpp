@@ -13,7 +13,7 @@ using namespace std;
 #define mass 1
 #define omega 1
 
-void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha)
+void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int Thermalization)
 {
 //The variational parameter
        // double alpha=0.50, deltaAlpha=0.01;
@@ -30,6 +30,7 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
                for (int j = 0; j < dim; j++){
                    rold.set_Elem(i, j, 0);
                    rnew.set_Elem(i ,j, 0);
+
                }
            }
 
@@ -56,7 +57,7 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
     //cout<< wfold<<endl;
 
  //The MC Cycle
-    for (int cycl = 1; cycl <= numMCCycles; cycl++) {
+    for (int cycl = 1; cycl <= numMCCycles+Thermalization; cycl++) {
 
  // We set the new position
 
@@ -68,9 +69,10 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
                }
          }
     wfnew = wavefunction(rnew, alpha, dim, numOfPart);
+
  // Metropolis test
 //cout << wfnew<<" " << wfold <<endl;
-    if(RNG(gen) < wfnew*wfnew/(wfold*wfold) ) {
+    if(RNG(gen) < wfnew*wfnew/(wfold*wfold)){
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
                     rold.set_Elem(i, j, rnew.get_Elem(i,j));
@@ -79,38 +81,40 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
   wfold=wfnew;
   accept++;
     }
-
+    if (cycl > Thermalization){
  // compute local energy
-    if (ind==1){
-        delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
+        if (ind==1){
+            delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
     }
-    else{
-        delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+        else{
+            delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
     }
 // update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
+
     //if(alpha==0.5){
-    if(!(cycl % 1000))
-       {
-        fileblock  <<eng/cycl<< endl
-       ;}
+    if(!(cycl % 1000)){
+
+        fileblock  <<eng/cycl<< endl;
+        }
        //;};
+    }
 
         }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
    // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-    cout << " " << accept <<endl;
+   //' cout << " " << accept <<endl;
 //cout << " " << Etot[var] <<endl;
   //Increase the variational parameter
         alpha += deltaAlpha;
 
  }    // end of loop over variational  steps
         fileblock.close();
- }
 
+}
 //The wave function without interaction
 double wavefunction(Matrix r, double alpha, int dim, int NumOfPart){
 
@@ -200,7 +204,7 @@ void QuantumForce(Matrix r, Matrix QForce, int dim, int numOfPart, double alpha)
 
 
 
-void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha)
+void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int Thermalization)
 {
 //The variational parameter
        // double alpha=0.50, deltaAlpha=0.01;
@@ -245,9 +249,10 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
  // initial trial WF
     wfold = wavefunction(rold, alpha, dim, numOfPart);
     QuantumForce(rold, QForceOld, dim, numOfPart, alpha);
+    // QForceOld =
 
  //The MC Cycle
-    for (int cycl = 1; cycl <= numMCCycles; cycl++) {
+    for (int cycl = 1; cycl <= numMCCycles+Thermalization; cycl++) {
 
  // We set the new position
 
@@ -280,24 +285,25 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
   wfold=wfnew;
   accept++;
     }
-
+    //if (cycl > Thermalization){
  // compute local energy
-    if (ind==1){
-        delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
-    }
-    else{
-        delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
-    }
+        if (ind==1){
+            delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
+        }
+        else{
+            delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+        }
 // update energies
-    eng  += delta_e;
-    eng2 += delta_e*delta_e;
+        eng  += delta_e;
+        eng2 += delta_e*delta_e;
 
-         }
+        //}
+        }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
    // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-cout << " " << accept <<endl;
+//cout << " " << accept <<endl;
 
   //Increase the variational parameter
         alpha += deltaAlpha;
