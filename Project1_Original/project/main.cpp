@@ -33,7 +33,7 @@ int main(){
        clock_t time_start = clock();
 
 //MC cycles
-       mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
+       mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, Thermailization);
        writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
        delete [] Etot;
