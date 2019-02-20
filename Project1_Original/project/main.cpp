@@ -19,9 +19,9 @@ int main(){
        int dim, numOfPart, numMCCycles,ind, thermailization;
 
 //The number of variational parameters and variational parameter
-       int numVar=10;
+       int numVar=200;
        double stepSize;
-       double alpha=0.1, deltaAlpha=0.1;
+       double alpha=0.48, deltaAlpha=0.1;
 
 //Initialise the number of dimensions, particles, MC cycles and energy arrays
        initialise(dim, numOfPart, numMCCycles, ind, stepSize, thermailization);
@@ -29,13 +29,15 @@ int main(){
        Etot = new double[numVar+1];
        Etot2 = new double[numVar+1];
 
+
 //Time start
        clock_t time_start = clock();
 
 //MC cycles
-       mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
+      //mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, Thermailization);
        writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
+       gradiendescent_brute(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        delete [] Etot;
        delete [] Etot2;
 
