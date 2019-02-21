@@ -36,7 +36,7 @@ int main(){
 //MC cycles
       //mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, Thermailization);
-       writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
+       //writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
        gradiendescent_brute(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        delete [] Etot;
        delete [] Etot2;
