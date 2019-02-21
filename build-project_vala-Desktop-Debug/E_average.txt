@@ -1,0 +1,23 @@
+Variational parameter E E2 variance 
+0.1 1.29297
+                  variance 2.82748
+0.2 0.72872
+                  variance 0.561429
+0.3 0.567299
+                  variance 0.143457
+0.4 0.51317
+                  variance 0.0257177
+0.5 0.5
+                  variance -2.5e-07
+0.6 0.506713
+                  variance 0.0174638
+0.7 0.526404
+                  variance 0.0601156
+0.8 0.548696
+                  variance 0.126915
+0.9 0.578345
+                  variance 0.207116
+1 0.611499
+                  variance 0.301532
+1.1 0.642808
+                  variance 0.418265
