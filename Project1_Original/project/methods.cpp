@@ -437,8 +437,12 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
 //Increase the variational parameter
         alphagrad=eng_derivative;
         alpha-=deltaAlpha*alphagrad;
-        cout<< "alpha="<<alpha<<endl;
 
+        cout<< "alpha="<<alpha<<" "<<deltaAlpha*alphagrad<<endl;
+       if(abs(deltaAlpha*alphagrad)<10e-8){
+           var=numVar;
+            //cout<<"Heeeeee "<<var<<endl;
+        }
  }
 
 // end of loop over variational  steps
