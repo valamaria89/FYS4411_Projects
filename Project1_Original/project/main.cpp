@@ -16,27 +16,28 @@ void initialise(int&, int&, int&,int&,double&, int& ) ;
 int main(){
 
 //The number of dimensions, particles, MC cycles and choise parameter
-       int dim, numOfPart, numMCCycles,ind, Thermailization;
+       int dim, numOfPart, numMCCycles,ind, thermailization;
 
 //The number of variational parameters and variational parameter
-       //int numVar=10;
-       int numVar=10;
+       int numVar=200;
        double stepSize;
-       //double alpha=0.1, deltaAlpha=0.1;
-       double alpha=0.1, deltaAlpha=0.1;
+       double alpha=0.48, deltaAlpha=0.1;
+
 //Initialise the number of dimensions, particles, MC cycles and energy arrays
-       initialise(dim, numOfPart, numMCCycles, ind, stepSize, Thermailization);
+       initialise(dim, numOfPart, numMCCycles, ind, stepSize, thermailization);
        double *Etot, *Etot2;
        Etot = new double[numVar+1];
        Etot2 = new double[numVar+1];
+
 
 //Time start
        clock_t time_start = clock();
 
 //MC cycles
-       mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, Thermailization);
+      //mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, Thermailization);
        writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
+       gradiendescent_brute(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        delete [] Etot;
        delete [] Etot2;
 
@@ -47,7 +48,7 @@ int main(){
 }
 
 // Beginning of function initialise
-void initialise(int& dim, int& numOfPart, int& numMCCycles, int& ind, double& stepSize, int& Thermalization){
+void initialise(int& dim, int& numOfPart, int& numMCCycles, int& ind, double& stepSize, int& thermalization){
 
   cout << "Insert the number of dimensions = ";
   cin >> dim;
@@ -61,8 +62,8 @@ void initialise(int& dim, int& numOfPart, int& numMCCycles, int& ind, double& st
   cout << "Insert the stepsize = ";
   cin >> stepSize;
   cout <<  endl;
-  cout << "Insert Thermalization = ";
-  cin >> Thermalization;
+  cout << "Insert Thermalization =  ";
+  cin >> thermalization;
   cout << endl;
   cout << "1.Analytical - type 1"<<endl;
   cout << "1.Numerical - type 2"<<endl;
