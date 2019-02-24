@@ -18,7 +18,7 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
 //The variational parameter
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
-
+        int counter=0;
 //Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
@@ -90,18 +90,18 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
     eng  += delta_e;
     eng2 += delta_e*delta_e;
 
-    //if(alpha==0.5){
-    if(!((cycl) % 10)){
-    //if(abs(eng/cycl-0.5)>1e-20){
-        fileblock  <<eng/cycl<< endl;
-    }
-    //}
-   // };
-
-    }
-
+    if(alpha==0.5){
+    if(!((cycl) % 1000)){
+        if(counter<512){
+        fileblock <<eng/cycl<< endl;
         }
-// end of loop over MC trials
+        counter++;
+      }
+    }
+  }
+// End of thermalization loop
+        }
+// End of loop over MC trials
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
     cout << " " << accept <<endl;
@@ -205,16 +205,20 @@ void QuantumForce(Matrix r, Matrix QForce, int dim, int numOfPart, double alpha)
 
 void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization)
 {
-//The variational parameter
+// The variational parameter
        // double alpha=0.50, deltaAlpha=0.01;
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
+        int counter=0;
 
-//Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
+// Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
         Matrix QForceNew(numOfPart, dim);
         Matrix QForceOld(numOfPart, dim);
+        ofstream fileblock;
+        fileblock.open("E_block.txt");
+
 
 
       for (int i = 0; i < numOfPart; i++){
@@ -231,26 +235,26 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
       uniform_real_distribution<double> RNG(0.0,1.0);
       normal_distribution<double> ND(0.0,1.0);
 
-//The loop over the variational parameter
+// The loop over the variational parameter
         for (int var=0; var<=numVar; var++) {
             eng = 0;
             eng2 = 0;
             accept =0;
             delta_e=0;
 
- //  initial trial position
+ // Initial trial position
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
                    rold.set_Elem( i, j, sqrt(timestep)*(ND(gen)));
                  }
            }
 
- // initial trial WF
+ // Initial trial WF
     wfold = wavefunction(rold, alpha, dim, numOfPart);
     QuantumForce(rold, QForceOld, dim, numOfPart, alpha);
 
 
- //The MC Ñycle
+ // The MC cycle
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
@@ -296,8 +300,16 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
         eng  += delta_e;
         eng2 += delta_e*delta_e;
 
+        if(alpha==0.5){
+        if(!((cycl) % 1000)){
+            if(counter<512){
+            fileblock <<eng/cycl<< endl;
+            }
+            counter++;
+          }
         }
-        }
+      }
+    }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
@@ -306,14 +318,13 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
   //Increase the variational parameter
         alpha += deltaAlpha;
  }    // end of loop over variational  steps
+    fileblock.close();
 
  }
 
-void writeToFile( string x, double *E1, double *E2, int numVar, double alpha, double deltaAlpha)
-{
-
+void writeToFile( string x, double *E1, double *E2, int numVar, double alpha, double deltaAlpha){
     string a;
-    //cout << "What are we looking at?" << endl;
+
     ofstream myfile;
     myfile.open(x);
     //cin >> a;
@@ -348,6 +359,8 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
         double alphagrad=0;
         double energy_average=0;
         double energy_average2=0,eng_derivative=0;
+        double *count;
+        count = new double[10];
 
 //Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
@@ -404,7 +417,7 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
   wfold=wfnew;
   accept++;
     }
-    if (cycl > thermalization){
+
  // compute local energy
         if (ind==1){
             delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
@@ -415,14 +428,13 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
             delta_wf = derWF(rold, alpha, dim, numOfPart);
     }
 
-
 // update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
     deriv_wf +=delta_wf;
     wfEngDeriv +=delta_wf*delta_e;
 
-    }
+
 
         }
 // end of loop over MC trials
@@ -438,11 +450,36 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
         alphagrad=eng_derivative;
         alpha-=deltaAlpha*alphagrad;
 
+//The selection rules for the gradient descent stop
+
+//If alpha decrease is less than epsilon
         cout<< "alpha="<<alpha<<" "<<deltaAlpha*alphagrad<<endl;
        if(abs(deltaAlpha*alphagrad)<10e-8){
            var=numVar;
-            //cout<<"Heeeeee "<<var<<endl;
         }
+
+//If alpha over ten last steps fluctuates less than epsilon
+       double aver=0,std=0,avers=0;
+       if(var<9){
+           count[var]=alphagrad;}
+       else{
+           for(int m=0; m<9; m++){
+               count[m]=count[m+1];
+               aver+=count[m];
+           }
+          count[9]=alphagrad;
+          aver=(aver+alphagrad)/10.0;
+       }
+
+       if(var>9)
+       {for(int m=0; m<10; m++){
+               avers+=(count[m]-aver)*(count[m]-aver);
+           }
+           std=sqrt(avers/10.0);
+           if(std<10e-8)
+           {var=numVar;}
+       }
+
  }
 
 // end of loop over variational  steps
