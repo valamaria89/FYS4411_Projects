@@ -4,7 +4,7 @@
 #include "time.h"
 #include "exercises.h"
 #include "matrix.h"
-
+#include "methods_interaction.h"
 
 using namespace std;
 
@@ -19,9 +19,11 @@ int main(){
        int dim, numOfPart, numMCCycles,ind, thermailization;
 
 //The number of variational parameters and variational parameter
-       int numVar=10;
+       int numVar=4;
        double stepSize;
-       double alpha=0.1, deltaAlpha=0.1;
+       double alpha=0.3, deltaAlpha=0.1;
+       double beta = 2.82843;
+      //double beta = 1.1;
 
 //Initialise the number of dimensions, particles, MC cycles and energy arrays
        initialise(dim, numOfPart, numMCCycles, ind, stepSize, thermailization);
@@ -34,7 +36,7 @@ int main(){
        clock_t time_start = clock();
 
 //MC cycles
-       mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
+       mc_sampling_INT(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization, beta);
        //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, thermailization);
        writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
        //gradiendescent_brute(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
