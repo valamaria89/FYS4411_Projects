@@ -1,5 +1,7 @@
 *.pro.user*
 build*
-project
 .DS_Store
 .qmake.stash
+*.txt
+project
+!project/
