@@ -4,8 +4,8 @@
 #define h2 1000000
 #define mass 1
 #define omega 1
-#define a 0.0043
-//#define a 0.43
+#define a 0.00
+
 
 using namespace std;
 
@@ -122,30 +122,25 @@ double wavefunction(Matrix r, double alpha, double beta, int dim, int NumOfPart)
         for (int j = 0; j < dim; j++) {
             if (j == 2){
                 r_sqr  += beta*r.get_Elem(i,j)*r.get_Elem(i,j);
-
         }
             else r_sqr += r.get_Elem(i,j)*r.get_Elem(i,j);
-
         }
         for (int k = i+1; k < NumOfPart; k++){
             for ( int di = 0; di < dim; di++){
                 r_ik += (r.get_Elem(i, di) - r.get_Elem(k, di))*(r.get_Elem(i, di) - r.get_Elem(k, di));
-                r_ik = sqrt(r_ik);
-
              }
+            r_ik = sqrt(r_ik);
             if( r_ik <= a){
-                p = 0;
-                //return 0;
+                p = 0;      
             }
             else arg += log(1-a/(r_ik));
-                //cout << arg << endl;
+
+            r_ik=0;
         }
 
       }
 
-
-
-      wf = exp(-alpha*r_sqr+0*arg);
+      wf = exp(-alpha*r_sqr+arg);
 
       return wf*p;
     }
@@ -159,8 +154,6 @@ double local_energy_num(Matrix r, double alpha, double beta, double wfold, int d
              for (int j = 0; j < dim; j++){
                  if (j == 2){
                      radsq  += beta*beta*r.get_Elem(i,j)*r.get_Elem(i,j);
-
-
              }
                  else {radsq += r.get_Elem(i,j)*r.get_Elem(i,j);
                  }
@@ -168,9 +161,7 @@ double local_energy_num(Matrix r, double alpha, double beta, double wfold, int d
                  rplus.set_Elem(i,j, r.get_Elem(i,j));
                  rminus.set_Elem(i, j, r.get_Elem(i,j));
              }
-
-
-             }
+           }
 
     for (int i = 0; i < numOfPart; i++){
              for (int j = 0; j < dim; j++){
@@ -194,20 +185,70 @@ double local_energy_num(Matrix r, double alpha, double beta, double wfold, int d
 
 //The alytical calculation of local energy
 double local_energy_analytic(Matrix r, double alpha, double beta, int dim, int numOfPart){
-    double  ekin = 0,epot=0, eloc=0, radsq = 0;
+    double  ekin = 0,epot=0, eloc=0, radsq = 0, r_ij=0,r_ik=0;
+    double ekin_1=0, ekin_2=0, ekin_3=0, ekin_4=0;
 
-    for(int i = 0; i < numOfPart; i++){
-        for(int j = 0; j < dim; j++){
-            if (j == 2){
-                radsq  += beta*beta*r.get_Elem(i,j)*r.get_Elem(i,j);
-        }
-            else radsq += r.get_Elem(i,j)*r.get_Elem(i,j);
-
-
-        }
+//This is the first term of kinetic energy which works fine!
+    for(int i=0; i<numOfPart; i++){
+        ekin_1+=-4*alpha-2*alpha*beta+4*alpha*alpha*(r.get_Elem(i,0)*r.get_Elem(i,0)+r.get_Elem(i,1)*r.get_Elem(i,1)+beta*beta*r.get_Elem(i,2)*r.get_Elem(i,2));
     }
-    ekin = -2*alpha*alpha*radsq+alpha*dim*numOfPart;
+//This is the second term
+     for(int i=0; i<numOfPart; i++){
+         for(int j=0; j<numOfPart; j++){
+             if(j!=i){
+                 for ( int di = 0; di < dim; di++){
+                     r_ij += (r.get_Elem(i, di) - r.get_Elem(j, di))*(r.get_Elem(i, di) - r.get_Elem(j, di));
+                  }
+                 r_ij=sqrt(r_ij);
+                 ekin_2+= 2*a /(r_ij*r_ij+a*r_ij)/r_ij*(-2*alpha*r.get_Elem(i,0)*(r.get_Elem(i,0)-r.get_Elem(j,0))-2*alpha*r.get_Elem(i,1)*(r.get_Elem(i,1)-r.get_Elem(j,1))-2*alpha*beta*r.get_Elem(i,2)*(r.get_Elem(i,2)-r.get_Elem(j,2)));
+                 r_ij=0;
+             }
+         }
+     }
+//This is the third term
+     for(int i=0; i<numOfPart; i++){
+         for(int j=0; j<numOfPart; j++){
+             if(j!=i){
+                 for(int k=0; k<numOfPart; k++){
+                     if(k!=i){
+                         for ( int di = 0; di < dim; di++){
+                             r_ij += (r.get_Elem(i, di) - r.get_Elem(j, di))*(r.get_Elem(i, di) - r.get_Elem(j, di));
+                             r_ik += (r.get_Elem(i, di) - r.get_Elem(k, di))*(r.get_Elem(i, di) - r.get_Elem(k, di));
+                          }
+                  r_ij=sqrt(r_ij);
+                  r_ik=sqrt(r_ik);
+                  ekin_3+=a*a/((r_ij*r_ij+a*r_ij)*(r_ik*r_ik+a*r_ik)*r_ij*r_ik)*((r.get_Elem(i,0)-r.get_Elem(j,0))*(r.get_Elem(i,0)-r.get_Elem(k,0))+(r.get_Elem(i,1)-r.get_Elem(j,1))*(r.get_Elem(i,1)-r.get_Elem(k,1))+(r.get_Elem(i,2)-r.get_Elem(j,2))*(r.get_Elem(i,2)-r.get_Elem(k,2)));
+                  r_ik=0;
+                  r_ij=0;
+                  }
+                }
+              }
+            }
+          }
 
+//This is the fourth term
+     for(int i=0; i<numOfPart; i++){
+         for(int j=0; j<numOfPart; j++){
+             if(j!=i){
+                 for ( int di = 0; di < dim; di++){
+                     r_ij += (r.get_Elem(i, di) - r.get_Elem(j, di))*(r.get_Elem(i, di) - r.get_Elem(j, di));
+                  }
+                 r_ij=sqrt(r_ij);
+                 ekin_4+=-a*(2*r_ij+a)/((r_ij*r_ij+a*r_ij)*(r_ij*r_ij+a*r_ij))+2/r_ij*a/(r_ij*r_ij+a*r_ij);
+                 r_ij=0;
+             }
+         }
+     }
+    for (int i = 0; i < numOfPart; i++){
+             for (int j = 0; j < dim; j++){
+                 if (j == 2){
+                     radsq  += beta*beta*r.get_Elem(i,j)*r.get_Elem(i,j);
+                   }
+                 else {radsq += r.get_Elem(i,j)*r.get_Elem(i,j);
+             }
+          }
+      }
+    ekin = -(ekin_1+ekin_2+ekin_3+ekin_4)/2;
     epot = radsq/2;
     eloc = epot+ekin;
     return eloc;

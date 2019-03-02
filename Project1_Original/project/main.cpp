@@ -27,6 +27,7 @@ int main(){
 
 //Initialise the number of dimensions, particles, MC cycles and energy arrays
        initialise(dim, numOfPart, numMCCycles, ind, stepSize, thermailization);
+       cout<<"Hei"<<endl;
        double *Etot, *Etot2;
        Etot = new double[numVar+1];
        Etot2 = new double[numVar+1];
