@@ -4,8 +4,13 @@
 #define h2 1000000
 #define mass 1
 #define omega 1
+<<<<<<< HEAD
 //#define a 0.43
 #define a 0.43
+=======
+#define a 0.00
+
+>>>>>>> 0490687d288bc3175cb820ac966b9180b7193c8e
 
 using namespace std;
 
@@ -442,9 +447,18 @@ double wavefunction(Matrix r, double alpha, double beta, int dim, int NumOfPart)
              }
             r_ik = sqrt(r_ik);
             if( r_ik <= a){
+<<<<<<< HEAD
                 p = 0;
             }
             else arg += log(1-a/(r_ik));
+=======
+                p = 0;      
+            }
+            else arg += log(1-a/(r_ik));
+
+            r_ik=0;
+        }
+>>>>>>> 0490687d288bc3175cb820ac966b9180b7193c8e
 
             r_ik=0;
         }
