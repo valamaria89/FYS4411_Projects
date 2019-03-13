@@ -1,214 +1,108 @@
-#include "methods.h"
-//#include "matrix.h"
+#include <fstream>
 #include <random>
 #include <cassert>
-#include <fstream>
+#include <iostream>
+#include "methods.h"
+#include "system.h"
+#include "position.h"
 using namespace std;
 
-// Constants for Hamiltonian and numerical calculation
-#define h 0.0001
-#define h2 100000000
+// Uniform distribution for s in [0, 1]
+//std::uniform_real_distribution<double> RNG(0.0,1.0);
+// Constants
+#define h 0.001
+#define h2 1000000
 #define mass 1
 #define omega 1
+#define a 0.0043
 
-//Monte Carlo cycles
-void Methods::mc_sampling()
+random_device cd;
+mt19937_64 ge(cd());
+uniform_real_distribution<double> GNR(0.0,1.0);
+
+double mc_sampling( System pOld, System pNew, double wfold, int numMCCycles, int ind, double alpha)
 {
-  cout<< dim <<" "<<numOfPart<<" "<<numMCCycles<< " "<<numVar<<" "<<step<<" "<<ISvsBrute<< " " << alpha << " " << deltaAlpha << endl;
+
 //The variational parameter
-        double wfnew = 0, wfold = 0, eng, eng2, delta_e;
-        int accept;
+        double wfnew, eng, eng2, delta_e;
+        int accept = 0;
+        int counter=0;
+        eng = 0;
+        eng2 = 0;
+        delta_e=0;
 
-//Stting of the old and the new positions to zero (2d matrices [number of particles, dimension])
-        rOld = zeros<mat>(numOfPart, dim);
-        rNew = zeros<mat>(numOfPart, dim);
-        //QFOld = zeros<mat>(numOfPart, dim);
-        //QFNew = zeros<mat>(numOfPart, dim);
 
-//Initialize the random device
-      random_device rd;
-      mt19937_64 gen(rd());
-      uniform_real_distribution<double> RNG(0.0,1.0);
-      normal_distribution<double> ND(0.0,1.0);
+//Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
 
-//The loop over the variational parameter
-        for (int var=0; var<=numVar; var++) {
-            eng = 0;
-            eng2 = 0;
-            accept =0;
-            delta_e=0;
 
- //  initial trial position
-            for (int i = 0; i < numOfPart; i++) {
-                for (int j = 0; j < dim; j++){
-                    rOld(i,j) = step*(RNG(gen)-0.5);
-                 }
-            }
+       // ofstream fileblock;
+        //fileblock.open("E_block.txt");
+
+
 
  // initial trial WF
-       wfold = wavefunction(rOld);
+
 
  //The MC Cycle
-            for (int cycl = 0; cycl <= numMCCycles; cycl++) {
- // We set the new position
-            for (int i = 0; i < numOfPart; i++) {
-                for (int j = 0; j < dim; j++){
-                    rNew(i,j) = rOld(i,j) + step*(RNG(gen)-0.5);
-                }
-             }
- // The new trial WF
-        wfnew = wavefunction(rNew);
+            for (int cycl = 1; cycl <= numMCCycles; cycl++) {
+
+// We set the new position
+            pNew.setRandomPosition();
+            wfnew = pNew.wavefunction();
 
  // Metropolis test
-             if(RNG(gen) <= wfnew*wfnew/(wfold*wfold) ) {
-                  for (int i = 0; i < numOfPart; i++) {
-                      for (int j = 0; j < dim; j++){
-                            rOld(i,j) = rNew(i,j);
-                            wfold=wfnew;
-                            accept++;
-                       }
-                  }
-             }
+            if(GNR(ge) < wfnew*wfnew/(wfold*wfold)){
+                pOld.setNewToOld(pNew.get_Matrix());
+                //p.setNewToOld();
 
- // Computing of local energy
+
+                wfold=wfnew;
+                accept++;
+    }
+// compute local energy
               if (ind==1){
-                  delta_e = local_energy_analytic(rNew);
-                 }
+                 delta_e = pOld.local_energy_analytic();
+                  }
               else{
-                  delta_e = local_energy_num(rNew);
-                   }
-// Updating of energies
-                eng  += delta_e;
-                eng2 += delta_e*delta_e;
-
-         }
-// The end of loop over MC trials
-
-// Averaging over the number of MC trials
-            Etot[var] = eng/numMCCycles;
-            Etot2[var] = eng2/numMCCycles;
-    cout<< alpha<< " " << Etot[var]<<" " <<Etot2[var]-Etot[var]*Etot[var]<<" " << accept<<endl;
-
-//Increase the variational parameter
-        alpha+=deltaAlpha;
-
- }
-// The end of loop over variational  steps
-
- }
-// The end of the MCsimpling function
-
-//The wave function without interaction
-double Methods::wavefunction(const mat &r){
-
-      double wf=0, r_sqr=0;
-
-      for (int i = 0; i < numOfPart; i++) {
-        for (int j = 0; j < dim; j++) {
-          r_sqr += r(i,j)*r(i,j);
-             }
-           }
-
-      wf = exp(-alpha*r_sqr) ;
-      return wf;
+                 delta_e = pOld.local_energy_num();
     }
+// update energies
+            eng  += delta_e;
+            eng2 += delta_e*delta_e;
 
-// The numerical calculation of local energy
-double Methods::local_energy_num(const mat &r){
-      double  wfminus=0, wfplus=0, wfold,ekin=0, epot=0, eloc=0, radsq = 0;
-      mat rplus, rminus;
-
-      rplus = zeros<mat>(numOfPart, dim);
-      rminus = zeros<mat>(numOfPart, dim);
-
-
-        for (int i = 0; i < numOfPart; i++){
-             for (int j = 0; j < dim; j++){
-                 radsq  += r(i,j)*r(i, j);
-                 rplus (i,j) = r(i,j);
-                 rminus(i,j)=  r(i,j);
-             }
+            if(alpha==0.5){
+            if(!((cycl) % 1000)){
+            if(counter<512){
+                //fileblock <<eng/cycl<< endl;
         }
-
-    wfold=wavefunction(r);
-    for (int i = 0; i < numOfPart; i++){
-             for (int j = 0; j < dim; j++){
-                 rplus(i,j) = rplus(i,j)+h;
-                 rminus(i,j) = rminus(i,j)-h;
-                 wfminus = wavefunction(rminus);
-                 wfplus  = wavefunction(rplus);
-                 ekin += (wfminus+wfplus-2*wfold);
-                 rplus (i,j) = r(i,j);
-                 rminus(i,j) = r(i,j);
-             }
-         }
-
-      ekin = -0.5*ekin*h2/wfold;
-      epot = radsq/2;
-      eloc = epot+ekin;
-
-      return eloc;
-  }
-
-
-// The alytical calculation of local energy
-double Methods::local_energy_analytic(const mat &r){
-    double  ekin = 0,epot=0, eloc=0, radsq = 0;
-
-    for(int i = 0; i < numOfPart; i++){
-        for(int j = 0; j < dim; j++){
-            radsq += r(i,j)*r(i,j);
-        }
+                counter++;
+      }
     }
-
-    ekin = -2*alpha*alpha*radsq+alpha*dim*numOfPart;
-
-    epot = radsq/2;
-    eloc = epot+ekin;
-
-
-    return eloc;
 }
+// End of loop over MC trials
 
-// The alytical calculation of quantum force
-void Methods::QuantumForce(const mat &r, mat &QForce){
-    mat rplus, rminus;
-    rplus = zeros<mat>(numOfPart, dim);
-    rminus = zeros<mat>(numOfPart, dim);
-    rplus = r;
-    rminus = r;
+       // fileblock.close();
+        return eng;
 
-    double wfold ;
-    wfold=wavefunction(r);
-    double  wfminus = 0, wfplus = 0;
-
-    for (int i = 0; i < numOfPart; i++){
-             for (int j = 0; j < dim; j++){
-                 rplus(i,j) += h;
-                 rminus(i,j) -= h;
-                 wfminus = wavefunction(rminus);
-                 wfplus  = wavefunction(rplus);
-                 QForce(i,j)= (wfplus-wfminus)/(wfold*h);
-                 rplus (i,j) = r(i,j);
-                 rminus(i,j)=  r(i,j);
-          }
-     }
 }
+/*
 
-
-
-/*void Methods::mc_sampling_IMS()
+void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization)
 {
-//The variational parameter
+// The variational parameter
        // double alpha=0.50, deltaAlpha=0.01;
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
+        int counter=0;
 
-//Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
+// Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
         Matrix QForceNew(numOfPart, dim);
         Matrix QForceOld(numOfPart, dim);
+        ofstream fileblock;
+        fileblock.open("E_block.txt");
+
 
 
       for (int i = 0; i < numOfPart; i++){
@@ -225,42 +119,43 @@ void Methods::QuantumForce(const mat &r, mat &QForce){
       uniform_real_distribution<double> RNG(0.0,1.0);
       normal_distribution<double> ND(0.0,1.0);
 
-//The loop over the variational parameter
+// The loop over the variational parameter
         for (int var=0; var<=numVar; var++) {
             eng = 0;
             eng2 = 0;
             accept =0;
             delta_e=0;
 
- //  initial trial position
+ // Initial trial position
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
-                   rold.set_Elem( i, j, sqrt(step)*(ND(gen)));
+                   rold.set_Elem( i, j, sqrt(timestep)*(ND(gen)));
                  }
            }
 
- // initial trial WF
-    wfold = wavefunction(rold, al);
-    QuantumForce(rold, QForceOld);
+ // Initial trial WF
+    wfold = wavefunction(rold, alpha, dim, numOfPart);
+    QuantumForce(rold, QForceOld, dim, numOfPart, alpha);
 
- //The MC Cycle
-    for (int cycl = 1; cycl <= numMCCycles; cycl++) {
+
+ // The MC cycle
+    for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
 
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
-               rnew.set_Elem(i, j, rold.get_Elem(i,j)+sqrt(step)*ND(gen)+0.5*QForceOld.get_Elem(i,j)*step);
+               rnew.set_Elem(i, j, rold.get_Elem(i,j)+sqrt(timestep)*ND(gen)+0.5*QForceOld.get_Elem(i,j)*timestep);
                }
          }
 
-    wfnew = wavefunction(rnew, al);
-    QuantumForce(rnew, QForceNew);
+    wfnew = wavefunction(rnew, alpha, dim, numOfPart);
+    QuantumForce(rnew, QForceNew, dim, numOfPart, alpha);
     double GreenFunction = 0;
      for (int i = 0; i < numOfPart; i++) {
          for (int j = 0; j < dim; j++){
 
-             GreenFunction += 0.5*(QForceOld.get_Elem(i,j) + QForceNew.get_Elem(i,j))*(0.25*step*(QForceOld.get_Elem(i, j)-QForceNew.get_Elem(i, j))+rold.get_Elem(i, j) - rnew.get_Elem(i,j));
+             GreenFunction += 0.5*(QForceOld.get_Elem(i,j) + QForceNew.get_Elem(i,j))*(0.25*timestep*(QForceOld.get_Elem(i, j)-QForceNew.get_Elem(i, j))+rold.get_Elem(i, j) - rnew.get_Elem(i,j));
          }
      }
      GreenFunction = exp(GreenFunction);
@@ -277,44 +172,53 @@ void Methods::QuantumForce(const mat &r, mat &QForce){
   wfold=wfnew;
   accept++;
     }
-
+    if (cycl > thermalization){
  // compute local energy
-    if (ind==1){
-        delta_e = local_energy_analytic(rold, al);
-    }
-    else{
-        delta_e = local_energy_num(rold, al);
-    }
+        if (ind==1){
+            delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
+        }
+        else{
+            delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
+        }
 // update energies
-    eng  += delta_e;
-    eng2 += delta_e*delta_e;
+        eng  += delta_e;
+        eng2 += delta_e*delta_e;
 
-         }
+        if(alpha==0.5){
+        if(!((cycl) % 1000)){
+            if(counter<512){
+            fileblock <<eng/cycl<< endl;
+            }
+            counter++;
+          }
+        }
+      }
+    }
 // end of loop over MC trials
     Etot[var] = eng/numMCCycles;
-   // cout<< "enrg= "<<eng<<endl;
     Etot2[var] = eng2/numMCCycles;
-cout << " " << accept <<endl;
+    cout << " " << accept <<endl;
 
   //Increase the variational parameter
-        //Methods al(alpha);
-        //al.setalpha();
-        //alpha += al.getalpha();
-       // cout << "alpha" << alpha << endl;
+        alpha += deltaAlpha;
  }    // end of loop over variational  steps
+    fileblock.close();
 
- }*/
+ }
 
-void Methods:: writeToFile()
-{
+void writeToFile( string x, double *E1, double *E2, int numVar, double alpha, double deltaAlpha){
+    string a;
+
     ofstream myfile;
-    myfile.open("E_average.txt");
-    myfile  <<"Variational parameter E E2 variance " << endl ;
+    myfile.open(x);
+    //cin >> a;
+    //myfile  << a << endl;
 
     for (int E = 0; E <= numVar; E++){
-        myfile << 0.1+0.1*E <<" "<< Etot[E] << endl ;
-        myfile << "                variance "<<  Etot2[E]<< endl ;
+        myfile << alpha+deltaAlpha*E <<" "<< E1[E] << endl ;
+        myfile << "                variance "<<  E2[E]-E1[E]*E1[E] << endl ;
     }
     myfile.close();
 }
 
+*/

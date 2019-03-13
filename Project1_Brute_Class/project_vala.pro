@@ -5,9 +5,13 @@ CONFIG -= qt
 
 SOURCES += \
         main.cpp \
-    methods.cpp
+    methods.cpp \
+    position.cpp \
+    system.cpp
 INCLUDEPATH += /usr/local/include
 LIBS += -L/usr/local/lib -llapack -lblas -larmadillo
 HEADERS += \
     methods.h \
-    matrix.h
+    matrix.h \
+    position.h \
+    system.h

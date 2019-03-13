@@ -19,9 +19,9 @@ int main(){
        int dim, numOfPart, numMCCycles,ind, thermailization;
 
 //The number of variational parameters and variational parameter
-       int numVar=4;
+       int numVar=0;
        double stepSize;
-       double alpha=0.3, deltaAlpha=0.1;
+       double alpha=0.5, deltaAlpha=0.001;
        double beta = 2.82843;
       //double beta = 1.1;
 
@@ -36,10 +36,13 @@ int main(){
        clock_t time_start = clock();
 
 //MC cycles
+       //mc_sampling(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
        mc_sampling_INT(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization, beta);
+       //mc_sampling_IMS_INT(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization, beta);
        //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, thermailization);
-       writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
+       //writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
        //gradiendescent_brute(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
+       //gradiendescent_brute_INT(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization, beta);
        delete [] Etot;
        delete [] Etot2;
 
