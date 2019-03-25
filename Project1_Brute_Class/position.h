@@ -2,33 +2,22 @@
 #define POSITION_H
 #include "matrix.h"
 
+class Position{
 
-class Position : public Matrix
-{
 public:
-    Position();
-    Position(int Np, int Di, double b, double step);
-    ~Position(){}
-    void setPosition_initial();
-    void setPosition(double value);
-    void setRandomPosition();
-    void setNewToOld(Matrix r);
-    void set_step(double step){ sd = step;}
-    double get_step(){return sd;}
-    double get_beta(){return beta;}
-    double getrsqrt();
-    Matrix& get_Matrix(){return r;}
-    double getPosition(int Np, int Di){return r.get_Elem(Np, Di);}
-protected:
-    Matrix r;
-    double beta;
-    double sd;
 
+    void setPosition_initial(Matrix r);
+    void setPosition_(Matrix r1, Matrix r);
+    void setRandomPosition(Matrix r, double step, double random);
+    void setRandomStep(Matrix rold, Matrix rnew, double step, double random);
+    void setNewToOld(Matrix rold, Matrix rnew);
+    void set_h(Matrix r, double h);
+    double getrsqrt(Matrix r);
 
 
 
 };
 
-ostream& operator<<(ostream& os, const Matrix & r);
+
 
 #endif // POSITION_H

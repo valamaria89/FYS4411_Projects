@@ -6,13 +6,12 @@
 using namespace std;
 
 class Matrix {
-protected:
+private:
     int NumOfPart;
     int dim;
     double ** r;
 public:
 
-    Matrix(){};
     Matrix(int NP, int di){
         r = new double * [NP];
         for (int i = 0; i < NP; i++ ){

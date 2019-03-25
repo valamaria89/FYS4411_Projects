@@ -10,42 +10,51 @@
 #define a 0.0043
 
 
-System::System(int the_Np, int the_dim, double the_alpha, double b, double st): Position(the_Np, the_dim, b, st), alpha(the_alpha){
+
+System::System(double the_alpha, double b):alpha(the_alpha), beta(b){
 
 }
 
-double System::wavefunction(){
-
+double System::wavefunction(Matrix r){
     double wf=0, r_sqr=0;
-    r_sqr = getrsqrt();
+    for(int i = 0; i < r.get_NumOfPart(); i++){
+        for(int j = 0; j < r.get_dim(); j++){
+            r_sqr  += r.get_Elem(i,j)*r.get_Elem(i,j);
+    }}
 
-    wf = exp(-get_alpha()*r_sqr) ;
+    wf = exp(-alpha*r_sqr) ;
     return wf;
 
 }
 
 
-double System::local_energy_num(){
+double System::local_energy_num(Matrix r){
     double  wfminus, wfplus, ekin=0, epot=0, eloc=0, radsq = 0;
-    System p_plus(r.get_NumOfPart(), r.get_dim(), get_alpha(), get_beta(), get_step()), p_minus(r.get_NumOfPart(), r.get_dim(), get_alpha(), get_beta(), get_step());
+    Position* p = new Position();
+    Matrix rplus(r.get_NumOfPart(), r.get_dim()), rminus(r.get_NumOfPart(), r.get_dim());
 
-    p_plus.setPosition(getPosition(r.get_NumOfPart(), r.get_dim()));
-    p_minus.setPosition(getPosition(r.get_NumOfPart(), r.get_dim()));
-    radsq = getrsqrt();
+    p->setPosition_(rplus, r);
+    p->setPosition_(rminus,r);
+
+    for(int i = 0; i < r.get_NumOfPart(); i++){
+        for(int j = 0; j < r.get_dim(); j++){
+            radsq  += r.get_Elem(i,j)*r.get_Elem(i,j);
+    }}
+
 
 
   for (int i = 0; i < r.get_NumOfPart(); i++){
            for (int j = 0; j <r.get_dim(); j++){
-               p_plus.set_Elem(i,j, r.get_Elem(i,j)+h);
-               p_minus.set_Elem(i, j,r.get_Elem(i,j)-h);
-               wfminus = p_minus.wavefunction();
-               wfplus  = p_plus.wavefunction();
-               ekin += (wfminus+wfplus-2*wavefunction());
-               p_plus.set_Elem(i,j, get_Elem(i,j));
-               p_minus.set_Elem(i, j, get_Elem(i,j));
+               rplus.set_Elem(i,j, r.get_Elem(i,j)+h);
+               rminus.set_Elem(i, j, r.get_Elem(i, j)-h);
+               wfminus = wavefunction(rplus);
+               wfplus  = wavefunction(rminus);
+               ekin += (wfminus+wfplus-2*wavefunction(r));
+               rplus.set_Elem(i,j, r.get_Elem(i,j));
+               rminus.set_Elem(i, j, r.get_Elem(i,j));
            }
        }
-    ekin = -0.5*ekin*h2/wavefunction();
+    ekin = -0.5*ekin*h2/wavefunction(r);
 
     epot = radsq/2;
     eloc = epot+ekin;
@@ -54,26 +63,34 @@ double System::local_energy_num(){
 }
 
 
-double System::local_energy_analytic(){
+double System::local_energy_analytic(Matrix r){
     double  ekin = 0,epot=0, eloc=0, radsq = 0;
 
-    radsq = getrsqrt();
-    ekin = -2*get_alpha()*get_alpha()*radsq+get_alpha()*r.get_dim()*r.get_NumOfPart();
+    for(int i = 0; i < r.get_NumOfPart(); i++){
+        for(int j = 0; j < r.get_dim(); j++){
+            radsq  += r.get_Elem(i,j)*r.get_Elem(i,j);
+    }}
+
+    //cout << " N " << m_numberofpart << endl;
+    //cout << " D " << m_dimensions << endl;
+    ekin = -2*alpha*alpha*radsq+alpha*r.get_dim()*r.get_NumOfPart();
+
     epot = radsq/2;
+    //cout << "Pot: " << epot <<  endl;
     eloc = epot+ekin;
     return eloc;
 }
 
-double System::wavefunction_int(){
+/*double System::wavefunction_int(Matrix r, double b){
     double wf=0, r_sqr=0;
 
-    r_sqr = getrsqrt();
-    wf = exp(-get_alpha()*r_sqr);
+    r_sqr = getrsqrt(r, b);
+    wf = exp(-alpha*r_sqr);
 
           return wf;
-}
+}*/
 
-double System::local_energy_analytical_int(){
+/*double System::local_energy_analytical_int(){
     double  ekin = 0,epot=0, eloc=0, radsq = 0, r_ij=0,r_ik=0;
     double ekin_1=0, ekin_2=0, ekin_3=0, ekin_4=0;
 
@@ -183,5 +200,5 @@ double System::derWF(){
 }
 
 
-
+*/
 

@@ -13,8 +13,9 @@ using namespace std;
 
 
 //normal_distribution<double> ND(0.0,1.0);
-
-
+//random_device cd;
+//mt19937_64 ge(cd());
+//uniform_real_distribution<double> GNR(0.0,1.0);
 
 void initialise(int&, int&, int&,int&,double&) ;
 
@@ -26,46 +27,44 @@ int main(){
 
     //The number of variational parameters and variational parameter
            int numVar=4;
-           double stepSize;
+           double stepSize = 1;
            double alpha=0.3, deltaAlpha=0.1;
            //double beta = 2.82843;
-          double beta = 1.00;
+           double beta = 1.00;
+           dim = 1;
+           numOfPart = 20;
+           numMCCycles = 1000000;
+           ind =1;
+
 
     //Initialise the number of dimensions, particles, MC cycles and energy arrays
-           initialise(dim, numOfPart, numMCCycles, ind, stepSize);
-           double *Etot, *Etot2, wfold, energy;
+          // initialise(dim, numOfPart, numMCCycles, ind, stepSize);
+           double *Etot, *Etot2;
            Etot = new double[numVar+1];
            Etot2 = new double[numVar+1];
+
+
 
 
     //Time start
            clock_t time_start = clock();
 
     //MC cycles
-           for (int var=0; var<=numVar; var++) {
-               System pOld(numOfPart, dim, alpha, beta, stepSize);
-               System pNew(numOfPart,dim, alpha, beta, stepSize);
-               pOld.setPosition_initial();
-               pNew.setPosition_initial();
-               pOld.setRandomPosition();
-               wfold = pOld.wavefunction();
-               energy = mc_sampling(pOld, pNew, wfold, numMCCycles, ind, alpha);
-               Etot[var] = energy/numMCCycles;
-               //Etot[var] = eng/numMCCycles;
-               //Etot2[var] = eng2/numMCCycles;
-               //cout << " " << accept <<endl;
-               cout << "Energy: " << Etot[var] << "  alpha: " << alpha << endl;
-               //Increase the variational parameter
-               alpha += deltaAlpha;
 
-           }
-           //mc_sampling_IMS(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind,alpha, deltaAlpha, thermailization);
-           // writeToFile("E_average_LA.txt", Etot, Etot2, numVar, alpha, deltaAlpha);
-           //gradiendescent_brute(stepSize, dim, numOfPart, numMCCycles, numVar, Etot, Etot2, ind, alpha, deltaAlpha, thermailization);
+
+           ofstream file;
+           file.open("time.txt");
+
+           for (int num = 1; num < numOfPart+1; num ++){
+           mc_sampling(numVar, num, dim, numMCCycles, ind, alpha, stepSize, deltaAlpha, Etot, Etot2, beta);
+           file <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << ", ";
+           //cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;
+}
+           file.close();
            delete [] Etot;
            delete [] Etot2;
 
-           cout << "Main running for " << " " <<  double((clock()-time_start)/double(CLOCKS_PER_SEC)) << " seconds" << endl;
+
 
     return 0;
 }

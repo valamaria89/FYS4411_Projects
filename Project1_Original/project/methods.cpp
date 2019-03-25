@@ -5,64 +5,63 @@
 #include <cassert>
 using namespace std;
 
-// Uniform distribution for s in [0, 1]
-//std::uniform_real_distribution<double> RNG(0.0,1.0);
-// Constants
-#define h 0.1
-#define h2 100
+#define h 0.001
+#define h2 1000000
 #define mass 1
 #define omega 1
 
-//*********************************BRUTE FORCE**************************************
+//**************************************BRUTE FORCE**************************************
 
 void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization)
 {
-//The variational parameter
+// Used parameters
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
         int counter=0;
 
-//Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
+// Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
         ofstream fileblock;
-        fileblock.open("E_block.txt");
+       fileblock.open("E_block.txt");
 
       for (int i = 0; i < numOfPart; i++){
-               for (int j = 0; j < dim; j++){
+          for (int j = 0; j < dim; j++){
                    rold.set_Elem(i, j, 0);
                    rnew.set_Elem(i ,j, 0);
-
                }
            }
 
+// Here we set the random number generator device
       random_device rd;
       mt19937_64 gen(rd());
       uniform_real_distribution<double> RNG(0.0,1.0);
 
-//The loop over the variational parameter
+// The loop over the variational parameter
         for (int var=0; var<=numVar; var++) {
             eng = 0;
             eng2 = 0;
             accept =0;
             delta_e=0;
 
- //  initial trial position
+ // Setting of initial trial position
         for (int i = 0; i < numOfPart; i++) {
-             for (int j = 0; j < dim; j++){
+            for (int j = 0; j < dim; j++){
                    rold.set_Elem( i, j, step*(RNG(gen)-0.5));
-                 }
-           }
+                }
+            }
 
- // initial trial WF
+ // Initial trial WF
     wfold = wavefunction(rold, alpha, dim, numOfPart);
-    /* One body densities
+
+// One body densities
 
        int numOfBins =200;
        double radMax =3;
        double radStep;
        radStep=radMax/numOfBins;
        double *volumes, *partInBins,*distances;
+
        volumes = new double[numOfBins];
        partInBins = new double[numOfBins];
        distances = new double[numOfBins];
@@ -71,14 +70,15 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
            distances[i]=i*radStep;
            partInBins[i]=0;
        }
-    // This part we don't use
+
+    // This calculates subsequent volumes of spherical segments
        volumes[0]=(4*3.14/3)*pow(distances[0],3);
        for(int j = 1; j < numOfBins; j++) {
               volumes[j] = (4*M_PI/3)*pow((distances[j]), 3) - volumes[j-1];
           }
-    */// ////////////////////
 
- //The MC Cycle
+ // ----------------------------The Monte Carlo cycle---------------------------
+
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
@@ -86,7 +86,8 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
            for (int j = 0; j < dim; j++){
                rnew.set_Elem(i, j, rold.get_Elem(i,j)+step*(RNG(gen)-0.5));
                }
-         }
+           }
+
     wfnew = wavefunction(rnew, alpha, dim, numOfPart);
 
  // Metropolis test
@@ -99,40 +100,37 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
   wfold=wfnew;
   accept++;
     }
+
+// Thermalization which gives just minor increase of speed
     if (cycl > thermalization){
 
- // Compute local energy
+// Compute local energy
         if (ind==1){
             delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
-    }
+           }
         else{
             delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
-    }
-        /* /////////////////////////
-                for(int l=0; l< numOfPart; l++){
-                  double rdist = sqrt(rold.get_Elem(l,0)*rold.get_Elem(l,0) + rold.get_Elem(l,1)*rold.get_Elem(l,1) +rold.get_Elem(l,2)*rold.get_Elem(l,2));
-                  int bin = 0;
-                  //double err = 1000000;
-                for(int k=1; k<numOfBins; k++) {
-                  if((distances[k-1]<=rdist)&&(rdist < distances[k]))
-                    //double e = fabs(volumes[k] - rdist);
-                    //if(e < err) {
-                         //err = e;
+           }
+
+     for(int l=0; l< numOfPart; l++){
+        double rdist = sqrt(rold.get_Elem(l,0)*rold.get_Elem(l,0) + rold.get_Elem(l,1)*rold.get_Elem(l,1) +rold.get_Elem(l,2)*rold.get_Elem(l,2));
+        int bin = 0;
+
+          for(int k=1; k<numOfBins; k++) {
+             if((distances[k-1]<=rdist)&&(rdist < distances[k]))
                          bin = k;
-                             //}
-                           }
-                partInBins[bin] += 1;
-                         }
+                }
+             partInBins[bin] += 1;
+          }
 
-
-        // ///////////////////////*/
 // Update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
 
+// Here we choose what we send to blocking program
     if(alpha==0.5){
-    if(!((cycl) % 1000)){
-        if(counter<512){
+    if(!((cycl) % 10)){
+        if(counter<65536){
         fileblock <<eng/cycl<< endl;
         }
         counter++;
@@ -145,21 +143,19 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
 
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
-    cout << " " << accept <<endl;
-   /* for(int k=1; k<numOfBins; k++){
+    //cout << "Energy " << Etot[var] << " alpha: " << alpha <<endl;
+
+
+    for(int k=1; k<numOfBins; k++){
         cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles)<< endl;
-       //cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles*volumes[k])<< endl;
-    }*/
-    for (int i = 0; i < numOfPart; i++) {
-         for (int j = 0; j < dim; j++){
-            cout<< rold.get_Elem(i,j)<<" ";
-             }
-         cout<<endl;
-       }
-    cout << " " << accept <<endl;
-   /* delete [] volumes;
+        cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles*volumes[k])<< endl;
+    }
+
+
+    delete [] volumes;
     delete [] partInBins;
-    delete [] distances;*/
+    delete [] distances;
+
 // Increase the variational parameter
         alpha += deltaAlpha;
  }
@@ -174,13 +170,12 @@ void mc_sampling( double step, int dim, int numOfPart, int numMCCycles, int numV
 
 void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization)
 {
-// The variational parameter
-       // double alpha=0.50, deltaAlpha=0.01;
+// Used parameters
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
         int counter=0;
 
-// Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
+// Here we set the old and the new positions and QF to zero (2d matrices [number of particles, dimension])
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
         Matrix QForceNew(numOfPart, dim);
@@ -196,7 +191,7 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
                    QForceOld.set_Elem(i,j, 0);
                }
            }
-
+// Here we set the random number generator device
       random_device rd;
       mt19937_64 gen(rd());
       uniform_real_distribution<double> RNG(0.0,1.0);
@@ -216,38 +211,39 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
                  }
            }
 
- // Initial trial WF
+ // Initial trial WF and QF
     wfold = wavefunction(rold, alpha, dim, numOfPart);
     QuantumForce(rold, QForceOld, dim, numOfPart, alpha);
+    // One body densities
 
- /*/ One body densities
+           int numOfBins =200;
+           double radMax =3;
+           double radStep;
+           radStep=radMax/numOfBins;
+           double *volumes, *partInBins,*distances;
 
-    int numOfBins =200;
-    double radMax =3;
-    double radStep;
-    radStep=radMax/numOfBins;
-    double *volumes, *partInBins,*distances;
-    volumes = new double[numOfBins];
-    partInBins = new double[numOfBins];
-    distances = new double[numOfBins];
+           volumes = new double[numOfBins];
+           partInBins = new double[numOfBins];
+           distances = new double[numOfBins];
 
-    for(int i = 0; i < numOfBins; i++){
-        distances[i]=i*radStep;
-        partInBins[i]=0;
-    }
- // This part we don't use
-    volumes[0]=(4*3.14/3)*pow(distances[0],3);
-    for(int j = 1; j < numOfBins; j++) {
-           volumes[j] = (4*M_PI/3)*pow((distances[j]), 3) - volumes[j-1];
-       }
- // ////////////////////*/
+           for(int i = 0; i < numOfBins; i++){
+               distances[i]=i*radStep;
+               partInBins[i]=0;
+           }
+
+        // This calculates subsequent volumes of spherical segments
+           volumes[0]=(4*3.14/3)*pow(distances[0],3);
+           for(int j = 1; j < numOfBins; j++) {
+                  volumes[j] = (4*M_PI/3)*pow((distances[j]), 3) - volumes[j-1];
+              }
+
+ // ----------------------------The Monte Carlo cycle---------------------------
 
 
  // The MC cycle
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
-
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
                rnew.set_Elem(i, j, rold.get_Elem(i,j)+sqrt(timestep)*ND(gen)+0.5*QForceOld.get_Elem(i,j)*timestep);
@@ -266,7 +262,6 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
      GreenFunction = exp(GreenFunction);
 
  // Metropolis-Hastings test
-
     if(RNG(gen) <= GreenFunction*wfnew*wfnew/(wfold*wfold) ) {
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
@@ -278,6 +273,7 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
   accept++;
     }
     if (cycl > thermalization){
+
  // Compute local energy
         if (ind==1){
             delta_e = local_energy_analytic(rold, alpha, dim, numOfPart);
@@ -285,31 +281,25 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
         else{
             delta_e = local_energy_num(rold, alpha, wfold, dim, numOfPart);
         }
-/*/ /////////////////////////
-        for(int l=0; l< numOfPart; l++){
-          double rdist = sqrt(rold.get_Elem(l,0)*rold.get_Elem(l,0) + rold.get_Elem(l,1)*rold.get_Elem(l,1) +rold.get_Elem(l,2)*rold.get_Elem(l,2));
-          int bin = 0;
-          //double err = 1000000;
-        for(int k=1; k<numOfBins; k++) {
-          if((distances[k-1]<=rdist)&&(rdist < distances[k]))
-            //double e = fabs(volumes[k] - rdist);
-            //if(e < err) {
-                 //err = e;
-                 bin = k;
-                     //}
-                   }
-        partInBins[bin] += 1;
-                 }
 
+     for(int l=0; l< numOfPart; l++){
+        double rdist = sqrt(rold.get_Elem(l,0)*rold.get_Elem(l,0) + rold.get_Elem(l,1)*rold.get_Elem(l,1) +rold.get_Elem(l,2)*rold.get_Elem(l,2));
+        int bin = 0;
 
-// ///////////////////////*/
+          for(int k=1; k<numOfBins; k++) {
+             if((distances[k-1]<=rdist)&&(rdist < distances[k]))
+                         bin = k;
+                }
+             partInBins[bin] += 1;
+          }
+
 // Update energies
         eng  += delta_e;
         eng2 += delta_e*delta_e;
 
         if(alpha==0.5){
-        if(!((cycl) % 1000)){
-            if(counter<512){
+        if(!((cycl) % 10)){
+            if(counter<65536){
             fileblock <<eng/cycl<< endl;
             }
             counter++;
@@ -320,15 +310,19 @@ void mc_sampling_IMS( double timestep, int dim, int numOfPart, int numMCCycles, 
 // End of loop over MC trials
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
-    /*for(int k=1; k<numOfBins; k++){
+
+for(int k=1; k<numOfBins; k++){
         cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles)<< endl;
        //cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles*volumes[k])<< endl;
     }
+
     cout << " " << accept <<endl;
     delete [] volumes;
     delete [] partInBins;
-    delete [] distances;*/
+    delete [] distances;
+
 cout << " " << accept <<endl;
+
 //Increase the variational parameter
         alpha += deltaAlpha;
  }
@@ -362,6 +356,7 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
                }
            }
 
+// Here we set the random number generator device
       random_device rd;
       mt19937_64 gen(rd());
       uniform_real_distribution<double> RNG(0.0,1.0);
@@ -382,7 +377,6 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
 
  // initial trial WF
     wfold = wavefunction(rold, alpha, dim, numOfPart);
-    //cout<< wfold<<endl;
 
  //The MC Cycle
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
@@ -422,17 +416,15 @@ void gradiendescent_brute( double step, int dim, int numOfPart, int numMCCycles,
     deriv_wf +=delta_wf;
     wfEngDeriv +=delta_wf*delta_e;
 
-
-
         }
 // end of loop over MC trials
+
     energy_average = eng/numMCCycles;
     energy_average2 = eng2/numMCCycles;
     wfEngDeriv=wfEngDeriv/numMCCycles;
     deriv_wf=deriv_wf/numMCCycles;
 
     eng_derivative=2*(wfEngDeriv-energy_average*deriv_wf);
-
 
 //Increase the variational parameter
         alphagrad=eng_derivative/numOfPart;
@@ -576,6 +568,7 @@ void QuantumForce_num(Matrix r, Matrix QForce, int dim, int numOfPart, double al
      }
 }
 
+//Write to file function
 void writeToFile( string x, double *E1, double *E2, int numVar, double alpha, double deltaAlpha){
     string a;
 
@@ -591,7 +584,7 @@ void writeToFile( string x, double *E1, double *E2, int numVar, double alpha, do
     myfile.close();
 }
 
-
+// Wave function derivative
 double derWF(Matrix r, double alpha, int dim, int NumOfPart){
 
       double wfder=0, r_sqr=0;

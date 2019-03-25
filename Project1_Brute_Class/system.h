@@ -4,16 +4,16 @@
 #include "position.h"
 
 
-class System : public Position
+class System
 {
 public:
-    System(){}
-    System(int the_Np, int the_dim, double the_alpha, double b, double st);
+    //System(){}
+    System(double the_alpha, double b);
     ~System(){}
-    double wavefunction();
-    double local_energy_num();
-    double local_energy_analytic();
-    double wavefunction_int();
+    double wavefunction(Matrix r);
+    double local_energy_num(Matrix r);
+    double local_energy_analytic(Matrix r);
+    double wavefunction_int(Matrix r, double b);
     double local_energy_analytical_int();
     void QuantumForce_Analytical();
     void QuantumForce_num();
@@ -21,11 +21,16 @@ public:
    // void set_alpha( double alp){alpha = alp;}
    // void set_beta(double b){beta = b;}
     double get_alpha() {return alpha;}
+    double get_beta() {return beta;}
+    //double get_step() {return step;}
 
 
-protected:
+private:
+    //int m_numberofpart;
+    //int m_dimensions;
     double alpha;
-
+    double beta;
+   // Position m_p;
 
 };
 

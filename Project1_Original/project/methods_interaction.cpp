@@ -4,13 +4,7 @@
 #define h2 1000000
 #define mass 1
 #define omega 1
-<<<<<<< HEAD
-//#define a 0.43
-#define a 0.43
-=======
-#define a 0.00
-
->>>>>>> 0490687d288bc3175cb820ac966b9180b7193c8e
+#define a 0.0043
 
 using namespace std;
 
@@ -18,7 +12,7 @@ using namespace std;
 
 void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization, double beta)
 {
-//The variational parameter
+// Used parameters
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
         int counter=0;
@@ -36,8 +30,7 @@ void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int 
                }
            }
 
-      //cout<<local_energy_analytic(rold, 0.5, dim, numOfPart)<<endl;
-
+// Here we set the random number generator device
       random_device rd;
       mt19937_64 gen(rd());
       uniform_real_distribution<double> RNG(0.0,1.0);
@@ -49,18 +42,35 @@ void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int 
             accept =0;
             delta_e=0;
 
- //  initial trial position
-        for (int i = 0; i < numOfPart; i++) {
+ // Setting of initial trial position
 
+        for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
                    rold.set_Elem( i, j, step*(RNG(gen)-0.5));
                  }
-           }
+            }
 
+ // Check that we don't put a particle into the interaction range
 
- // initial trial WF
+        for (int i = 0; i < numOfPart; i++) {
+            double r_ik=0;
+             for (int k = 0; k < dim; k++){
+                   r_ik=sqrt(pow((rold.get_Elem(0,i)-rold.get_Elem(0,i)),2)+pow((rold.get_Elem(1,i)-rold.get_Elem(1,i)),2)+pow((rold.get_Elem(2,i)-rold.get_Elem(2,i)),2));
+                   if(r_ik<a){
+                       do{for (int j = 0; j < dim; j++){
+                               rold.set_Elem( i, j, step*(RNG(gen)-0.5));
+                             };
+                        r_ik=sqrt(pow((rold.get_Elem(0,i)-rold.get_Elem(0,i)),2)+pow((rold.get_Elem(1,i)-rold.get_Elem(1,i)),2)+pow((rold.get_Elem(2,i)-rold.get_Elem(2,i)),2));
+                       }
+                       while(r_ik<a);
+                   }
+                }
+             }
+
+// Initial trial WF
     wfold = wavefunction(rold, alpha, beta, dim, numOfPart);
-    //One body densities
+
+// One body densities
 
            int numOfBins =120;
            double radMax =3;
@@ -75,24 +85,24 @@ void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int 
                distances[i]=i*radStep;
                partInBins[i]=0;
            }
-        // This part we don't use
+// This part we don't use
            volumes[0]=(4*3.14/3)*pow(distances[0],3);
            for(int j = 1; j < numOfBins; j++) {
                   volumes[j] = (4*M_PI/3)*pow((distances[j]), 3) - volumes[j-1];
               }
 
- //The MC Cycle
+// ----------------------------The Monte Carlo cycle---------------------------
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
- // We set the new position
+// We set the new position
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
                rnew.set_Elem(i, j, rold.get_Elem(i,j)+step*(RNG(gen)-0.5));
                }
          }
     wfnew = wavefunction(rnew, alpha, beta, dim, numOfPart);
-     //cout<< wfnew<<endl;
- // Metropolis test
+
+// Metropolis test
     if(RNG(gen) < wfnew*wfnew/(wfold*wfold)){
         for (int i = 0; i < numOfPart; i++) {
              for (int j = 0; j < dim; j++){
@@ -103,33 +113,30 @@ void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int 
   accept++;
     }
     if (cycl > thermalization){
- // compute local energy
+
+// Compute local energy
         if (ind==1){
             delta_e = local_energy_analytic(rold, alpha, beta, dim, numOfPart);
     }
         else{
             delta_e = local_energy_num(rold, alpha, beta, wfold, dim, numOfPart);
     }
-// update energies
+// Update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
+
     for(int l=0; l< numOfPart; l++){
       double rdist = sqrt(rold.get_Elem(l,0)*rold.get_Elem(l,0) + rold.get_Elem(l,1)*rold.get_Elem(l,1) +rold.get_Elem(l,2)*rold.get_Elem(l,2));
       int bin = 0;
-      //double err = 1000000;
     for(int k=1; k<numOfBins; k++) {
       if((distances[k-1]<=rdist)&&(rdist < distances[k]))
-        //double e = fabs(volumes[k] - rdist);
-        //if(e < err) {
-             //err = e;
              bin = k;
-                 //}
                }
     partInBins[bin] += 1;
              }
     if(alpha==0.5){
-    if(!((cycl) % 1000)){
-        if(counter<512){
+    if(!((cycl) % 10)){
+        if(counter<65536){
         fileblock <<eng/cycl<< endl;
         }
         counter++;
@@ -141,27 +148,27 @@ void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int 
 // End of loop over MC trials
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
-    int ar=0;
-    //cout << " " << accept <<endl;
-    cout << "alpha: " << alpha << " Energy " << Etot[var] <<" Variance " << Etot2[var] - Etot[var]* Etot[var] << endl;
-    for(int k=0; k<numOfBins; k++){
-           cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles)<< endl;
-           ar+=partInBins[k];
-           //cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles*volumes[k])<< endl;
+
+cout<< alpha<<" Energy="<<Etot[var]<<" Variance="<<Etot2[var]-Etot[var]*Etot[var]<<endl;
+
+// Density and positions
+
+  for(int k=0; k<numOfBins; k++){
+      cout<<distances[k]<<" "<< partInBins[k]/(numMCCycles*volumes[k])<< endl;
     }
-    //for (int i = 0; i < numOfPart; i++) {
-         //for (int j = 0; j < dim; j++){
-           // cout<< rold.get_Elem(i,j)<<" ";
-           //  }
-         //cout<<endl;
-       //}
-    cout<<" Numb= "<< ar/(numMCCycles)<<endl;
+
+  /* for (int i = 0; i < numOfPart; i++) {
+       for (int j = 0; j < dim; j++){
+       cout<< rold.get_Elem(i,j)<<" ";
+         }
+       cout<<endl;
+     }*/
+
 // Increase the variational parameter
         alpha += deltaAlpha;
         delete [] volumes;
         delete [] partInBins;
         delete [] distances;
-        //cout << wfold << endl;
  }
 
 // End of loop over variational  steps
@@ -173,8 +180,7 @@ void mc_sampling_INT( double step, int dim, int numOfPart, int numMCCycles, int 
 
 void mc_sampling_IMS_INT( double timestep, int dim, int numOfPart, int numMCCycles, int numVar,  double *Etot, double *Etot2, int ind,double alpha, double deltaAlpha, int thermalization,double beta)
 {
-// The variational parameter
-       // double alpha=0.50, deltaAlpha=0.01;
+// Used parameters
         double wfnew, wfold, eng, eng2, delta_e;
         int accept;
         int counter=0;
@@ -195,7 +201,7 @@ void mc_sampling_IMS_INT( double timestep, int dim, int numOfPart, int numMCCycl
                    QForceOld.set_Elem(i,j, 0);
                }
            }
-
+// Here we set the random number generator device
       random_device rd;
       mt19937_64 gen(rd());
       uniform_real_distribution<double> RNG(0.0,1.0);
@@ -215,16 +221,31 @@ void mc_sampling_IMS_INT( double timestep, int dim, int numOfPart, int numMCCycl
                  }
            }
 
+  // Check that we don't put a particle into the interaction range
+
+         for (int i = 0; i < numOfPart; i++) {
+              double r_ik=0;
+              for (int k = 0; k < dim; k++){
+                 r_ik=sqrt(pow((rold.get_Elem(0,i)-rold.get_Elem(0,i)),2)+pow((rold.get_Elem(1,i)-rold.get_Elem(1,i)),2)+pow((rold.get_Elem(2,i)-rold.get_Elem(2,i)),2));
+                    if(r_ik<a){
+                     do{for (int j = 0; j < dim; j++){
+                        rold.set_Elem( i, j, sqrt(timestep)*(ND(gen)));
+                        };
+                      r_ik=sqrt(pow((rold.get_Elem(0,i)-rold.get_Elem(0,i)),2)+pow((rold.get_Elem(1,i)-rold.get_Elem(1,i)),2)+pow((rold.get_Elem(2,i)-rold.get_Elem(2,i)),2));
+                        }
+                      while(r_ik<a);
+                          }
+                       }
+                    }
+
  // Initial trial WF
     wfold = wavefunction(rold, alpha, beta, dim, numOfPart);
     QuantumForce(rold, QForceOld, dim, numOfPart, alpha, beta);
 
-
- // The MC cycle
+// ----------------------------The Monte Carlo cycle---------------------------
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
-
       for (int i = 0; i < numOfPart; i++) {
            for (int j = 0; j < dim; j++){
                rnew.set_Elem(i, j, rold.get_Elem(i,j)+sqrt(timestep)*ND(gen)+0.5*QForceOld.get_Elem(i,j)*timestep);
@@ -255,6 +276,7 @@ void mc_sampling_IMS_INT( double timestep, int dim, int numOfPart, int numMCCycl
   accept++;
     }
     if (cycl > thermalization){
+
  // Compute local energy
         if (ind==1){
             delta_e = local_energy_analytic(rold, alpha, beta, dim, numOfPart);
@@ -262,6 +284,7 @@ void mc_sampling_IMS_INT( double timestep, int dim, int numOfPart, int numMCCycl
         else{
             delta_e = local_energy_num(rold, alpha, beta, wfold, dim, numOfPart);
         }
+
 // Update energies
         eng  += delta_e;
         eng2 += delta_e*delta_e;
@@ -279,8 +302,6 @@ void mc_sampling_IMS_INT( double timestep, int dim, int numOfPart, int numMCCycl
 // End of loop over MC trials
     Etot[var] = eng/numMCCycles;
     Etot2[var] = eng2/numMCCycles;
-    //cout << " " << accept <<endl;
-    //cout << "alpha: " << alpha << " Energy " << Etot[var] <<" Variance " << Etot2[var] - Etot[var]* Etot[var] << endl;
 
 //Increase the variational parameter
         alpha += deltaAlpha;
@@ -305,6 +326,7 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
         count = new double[10];
 
 //Here we set the old and the new positions to zero (2d matrices [number of particles, dimension])
+
         Matrix rold(numOfPart, dim);
         Matrix rnew(numOfPart, dim);
 
@@ -316,6 +338,7 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
                }
            }
 
+// Here we set the random number generator device
       random_device rd;
       mt19937_64 gen(rd());
       uniform_real_distribution<double> RNG(0.0,1.0);
@@ -336,9 +359,8 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
 
  // initial trial WF
     wfold = wavefunction(rold, alpha, beta, dim, numOfPart);
-    //cout<< wfold<<endl;
 
- //The MC Cycle
+// ----------------------------The Monte Carlo cycle---------------------------
     for (int cycl = 1; cycl <= numMCCycles+thermalization; cycl++) {
 
  // We set the new position
@@ -360,7 +382,7 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
   accept++;
     }
 
- // compute local energy
+ // Compute local energy
         if (ind==1){
             delta_e = local_energy_analytic(rold, alpha, beta, dim, numOfPart);
             delta_wf = derWF(rold, alpha, beta, dim, numOfPart);
@@ -370,7 +392,7 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
             delta_wf = derWF(rold, alpha, beta, dim, numOfPart);
     }
 
-// update energies
+// Update energies
     eng  += delta_e;
     eng2 += delta_e*delta_e;
     deriv_wf +=delta_wf;
@@ -385,8 +407,7 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
 
     eng_derivative=2*(wfEngDeriv-energy_average*deriv_wf);
 
-
-//Increase the variational parameter
+// Increase the variational parameter
         alphagrad=eng_derivative/numOfPart;
         alpha-=deltaAlpha*alphagrad;
 
@@ -427,7 +448,6 @@ void gradiendescent_brute_INT( double step, int dim, int numOfPart, int numMCCyc
 }
 
 
-
 //The wave function with interaction
 double wavefunction(Matrix r, double alpha, double beta, int dim, int NumOfPart){
 
@@ -447,18 +467,9 @@ double wavefunction(Matrix r, double alpha, double beta, int dim, int NumOfPart)
              }
             r_ik = sqrt(r_ik);
             if( r_ik <= a){
-<<<<<<< HEAD
                 p = 0;
             }
             else arg += log(1-a/(r_ik));
-=======
-                p = 0;      
-            }
-            else arg += log(1-a/(r_ik));
-
-            r_ik=0;
-        }
->>>>>>> 0490687d288bc3175cb820ac966b9180b7193c8e
 
             r_ik=0;
         }
@@ -589,6 +600,7 @@ void QuantumForce(Matrix r, Matrix QForce, int dim, int numOfPart, double alpha,
           }
      }
 }
+
 // The numerical quantum force calculation
 void QuantumForce_num(Matrix r, Matrix QForce, int dim, int numOfPart, double alpha,double beta){
     Matrix rplus(numOfPart, dim), rminus(numOfPart, dim);
@@ -615,6 +627,7 @@ void QuantumForce_num(Matrix r, Matrix QForce, int dim, int numOfPart, double al
      }
 }
 
+// The wave function derivative
 double derWF(Matrix r, double alpha, double beta, int dim, int NumOfPart){
 
       double wfder=0, r_sqr=0;
