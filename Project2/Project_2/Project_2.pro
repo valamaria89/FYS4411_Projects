@@ -4,4 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+    system.cpp
+
+HEADERS += \
+    matrix.h \
+    system.h \
+    system.h
