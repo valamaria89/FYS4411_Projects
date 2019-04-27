@@ -1,32 +1,30 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include "matrix.h"
+#include <Eigen/Dense>
+using namespace Eigen;
 
 class System
 {
 public:
     //System(){}
-    System(int N, int M, double sigma, double omega);
+    System(int inp_N, int inp_M, double inp_sigma, double inp_omega);
     ~System(){}
-    double waveFunction(Matrix x, Matrix a, Matrix W, double sigma);
-    double localEnergy_IMS(Matrix x, Matrix a, Matrix W, double sigma);
-    double localEnergy_Gibbs(Matrix x, Matrix a, Matrix W, double sigma);
 
-    void QuantumForce_IMS(Matrix x, Matrix a, Matrix W, Matrix qForce);
-    void QuantumForce_Gibbs(Matrix x, Matrix a, Matrix W, Matrix qForce);
+    double localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma);
+    VectorXd grad_a(VectorXd x, VectorXd a, double sigma);
+    VectorXd grad_b(VectorXd x, VectorXd b, MatrixXd W, double sigma);
+    MatrixXd grad_W(VectorXd x, VectorXd b, MatrixXd W, double sigma);
+    double grad_sigma(VectorXd x,VectorXd a, VectorXd b, MatrixXd W, double sigma);
+    VectorXd QuantumForce(VectorXd x,VectorXd a, VectorXd b, MatrixXd W, double sigma);
 
-    void grad_a(Matrix x, Matrix a, Matrix W, Matrix psiDa);
-    void grad_b(Matrix x, Matrix a, Matrix W, Matrix psiDb);
-    void grad_W(Matrix x, Matrix a, Matrix W, Matrix psiDW);
-    void grad_sigma(Matrix x, Matrix a, Matrix W, Matrix psiDW);
-
-    double logSigm(Matrix x, Matrix a, Matrix b, Matrix W, double sigma, int k);
+    VectorXd logSigm(VectorXd u);
 
 private:
-  int N;
-  int M;
-  double sigma;
-  double omega;
+  int s_N;
+  int s_M;
+  double s_sigma;
+  double s_omega;
 
 };
 
