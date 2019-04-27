@@ -20,7 +20,7 @@ public:
     void grad_W(Matrix x, Matrix a, Matrix W, Matrix psiDW);
     void grad_sigma(Matrix x, Matrix a, Matrix W, Matrix psiDW);
 
-    double u(Matrix x, Matrix a, Matrix b, Matrix W, double sigma, int k);
+    double logSigm(Matrix x, Matrix a, Matrix b, Matrix W, double sigma, int k);
 
 private:
   int N;

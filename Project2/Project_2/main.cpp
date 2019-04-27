@@ -1,6 +1,10 @@
 #include <iostream>
 #include "system.h"
 #include "matrix.h"
+#include <iostream>
+#include <iostream>
+#include <Eigen/Dense>
+using Eigen::MatrixXd;
 
 using namespace std;
 
@@ -35,5 +39,7 @@ for (int i = 0; i < N; i++) {
 
 cout<<"This is our result "<<h.waveFunction(x,a,W,sigma)<<endl;
 cout<<"This is also our result "<<h.localEnergy_IMS(x,a,W,sigma)<<endl;
-cout<<"And this is u "<<h.u(x,a,b,W,sigma,1)<<endl;
+cout<<"And this is u "<<h.logSigm(x,a,b,W,sigma,1)<<endl;
 }
+
+

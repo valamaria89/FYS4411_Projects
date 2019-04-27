@@ -42,7 +42,7 @@ void System::grad_sigma(Matrix x, Matrix a, Matrix W, Matrix psiDW){
 
 }
 
-double System::u(Matrix x, Matrix a, Matrix b, Matrix W, double sigma, int k){
+double System::logSigm(Matrix x, Matrix a, Matrix b, Matrix W, double sigma, int k){
  double res=0;
  for (int i = 0; i < M ; i++) {
         res+=x.get_Elem(i,0)*W.get_Elem(i,k-1);
