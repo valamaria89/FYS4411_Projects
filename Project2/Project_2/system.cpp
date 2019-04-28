@@ -52,6 +52,14 @@ VectorXd System::grad_b(VectorXd x, VectorXd b, MatrixXd W, double sigma){
 MatrixXd System::grad_W(VectorXd x, VectorXd b, MatrixXd W, double sigma){
 
        VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
+       /*MatrixXd out = MatrixXd::Zero(s_M, s_N);
+
+       for(int i=0;i< s_M; i++){
+           for(int j=0;j<s_N;j++){
+               out(i,j)=x(i)*logSigm(u)(j);
+           }
+       }*/
+
        return x*logSigm(u).transpose()/pow(sigma,2);
 
 }
