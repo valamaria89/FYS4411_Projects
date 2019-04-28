@@ -17,7 +17,7 @@ public:
     MatrixXd grad_W(VectorXd x, VectorXd b, MatrixXd W, double sigma);
     double grad_sigma(VectorXd x,VectorXd a, VectorXd b, MatrixXd W, double sigma);
     VectorXd QuantumForce(VectorXd x,VectorXd a, VectorXd b, MatrixXd W, double sigma);
-
+    double waveFunction(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma);
     VectorXd logSigm(VectorXd u);
 
 private:
