@@ -9,7 +9,7 @@ System::System(int inp_N, int inp_M, double inp_sigma, double inp_omega):s_N(inp
 
 double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma){
 
-   VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
+   VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
 
    double E_kin = 0;
    double E_pot = 0;
@@ -18,6 +18,7 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
    for(int i =0;i<s_M;i++){
        double sum_1=0;
        double sum_2=0;
+
          for(int j =0;j<s_N;j++){
              sum_1+=W(i,j)*logSigm(u)(j);
              sum_2+=W(i,j)*W(i,j)*logSigm(-u)(j)*logSigm(u)(j);
@@ -25,8 +26,8 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
          double d1lnPsi = -(x(i)-a(i))/pow(sigma,2)+sum_1/pow(sigma,2);
          double d2lnPsi = -1/pow(sigma,2)+sum_2/pow(sigma,4);
 
-         E_kin += -1/2*(d2lnPsi+d1lnPsi*d1lnPsi);
-         E_pot += 1/2*x(i)*x(i)*s_omega*s_omega;
+         E_kin += -(d2lnPsi+d1lnPsi*d1lnPsi)/2;
+         E_pot += x(i)*x(i)*s_omega*s_omega/2;
    }
 
    E_loc = E_kin+E_pot;
@@ -43,7 +44,7 @@ VectorXd System::grad_a(VectorXd x, VectorXd a, double sigma){
 
 VectorXd System::grad_b(VectorXd x, VectorXd b, MatrixXd W, double sigma){
 
-    VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
+     VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
     return logSigm(u);
 
 }
@@ -51,14 +52,7 @@ VectorXd System::grad_b(VectorXd x, VectorXd b, MatrixXd W, double sigma){
 
 MatrixXd System::grad_W(VectorXd x, VectorXd b, MatrixXd W, double sigma){
 
-       VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
-       /*MatrixXd out = MatrixXd::Zero(s_M, s_N);
-
-       for(int i=0;i< s_M; i++){
-           for(int j=0;j<s_N;j++){
-               out(i,j)=x(i)*logSigm(u)(j);
-           }
-       }*/
+        VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
 
        return x*logSigm(u).transpose()/pow(sigma,2);
 
@@ -66,7 +60,7 @@ MatrixXd System::grad_W(VectorXd x, VectorXd b, MatrixXd W, double sigma){
 
 double System::grad_sigma(VectorXd x,VectorXd a, VectorXd b, MatrixXd W, double sigma){
 
-       VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
+        VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
        VectorXd xa = x-a;
        double term = (W.transpose()*x).transpose()*logSigm(u);
        return (xa.transpose()*xa+term)/pow(sigma,3);
@@ -74,7 +68,7 @@ double System::grad_sigma(VectorXd x,VectorXd a, VectorXd b, MatrixXd W, double 
 
 VectorXd System::QuantumForce(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma){
 
-    VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
+     VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
     return (-2*(x-a)+2*logSigm(u).transpose()*W)/pow(sigma,2);
 }
 
@@ -83,7 +77,7 @@ VectorXd System::QuantumForce(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, dou
 
 
 double System::waveFunction(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma){
-    VectorXd u = b + (W.transpose() * x)/pow(sigma,2);
+     VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
     double prod1 = 1;
     VectorXd Xa = x-a;
     double prod2 = Xa.transpose()*Xa;

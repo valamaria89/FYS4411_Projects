@@ -13,18 +13,29 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
     uniform_real_distribution<> dis(0, 1);
     uniform_int_distribution<> hrand(0, 1);
 
-    RBM R(N, P, dim, sigma);
-    VectorXd Xold = R.rbm_x;
-    VectorXd Xnew = VectorXd::Zero(R.rbm_M);
+    //RBM R(N, P, dim, sigma);
 
-    System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
 
-    uniform_int_distribution<> mrand(0, R.rbm_M-1);
+    //VectorXd Xold = R.rbm_x;
+    //VectorXd Xnew = VectorXd::Zero(R.rbm_M);
+
+      //cout<<"X initial="<<Xold(0)<<endl;
+
+   // System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
+
+    //cout<<Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma)<<endl;
+
+    //uniform_int_distribution<> mrand(0, R.rbm_M-1);
+    int counter = 0;
 
     for (int var = 0; var < numOfvar; var++){
         //energies:
         double eng = 0, eng2= 0, delta_e =0;
-
+RBM R(N, P, dim, sigma);
+System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
+VectorXd Xold = R.rbm_x;
+VectorXd Xnew = VectorXd::Zero(R.rbm_M);
+uniform_int_distribution<> mrand(0, R.rbm_M-1);
         //Derivatives of variables
         VectorXd Grad_a = VectorXd::Zero(R.rbm_M);
         VectorXd Grad_b = VectorXd::Zero(R.rbm_N);
@@ -53,6 +64,7 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
                 Xold = Xnew;
 
             }
+
             delta_e = Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
 
             //Summation of energies
@@ -72,7 +84,14 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
             Eng_Grad_sigma += Hamiltonian.grad_sigma(Xold, R.rbm_a, R.rbm_b,R.rbm_W, R.rbm_sigma)*delta_e;
 
         }
+   //cout<<Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma)<<endl;
+       // for(int i=0;i<R.rbm_M;i++){
+            //cout<<R.rbm_a(i)<<" ";
+       // }
+        //cout <<endl;
+        //cout<<accept;
 
+        //cout<<"X="<<Xnew(0)<<endl;
         eng /= MCcycles;
         eng2 /= MCcycles;
         Grad_a /= MCcycles;
@@ -85,9 +104,11 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
         R.rbm_W -= 2*learnRate*(Eng_Grad_W/MCcycles - eng*Grad_W);
         R.rbm_sigma -= 2*learnRate*(Eng_Grad_sigma/MCcycles - eng*Grad_sigma);
 
-
-
-
+cout <<"Energy = " <<eng<< " Variance = "<<eng2-eng*eng<< endl;
+if((eng<0.6)&&(eng>0.45)){
+counter++;
+}
     }
-cout << "Hei!" << endl;
+    cout<< "Counter="<<counter<<endl;
+
 }
