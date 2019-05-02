@@ -106,9 +106,9 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
         R.rbm_a -= 2*learnRate*(Eng_Grad_a/MCcycles - eng*Grad_a);
         R.rbm_b -= 2*learnRate*(Eng_Grad_b/MCcycles - eng*Grad_b);
         R.rbm_W -= 2*learnRate*(Eng_Grad_W/MCcycles - eng*Grad_W);
-        R.rbm_sigma -= 2*learnRate*(Eng_Grad_sigma/MCcycles - eng*Grad_sigma);
+        R.rbm_sigma -= 0; //2*learnRate*(Eng_Grad_sigma/MCcycles - eng*Grad_sigma);
 
-cout <<"Energy = " <<eng<< " Variance = "<<eng2-eng*eng<< endl;
+cout <<"Energy = " <<eng<< " Variance = "<<eng2-eng*eng<< " Acceptance = " << accept << endl;
 if((eng<0.6)&&(eng>0.45)){
 counter++;
 }

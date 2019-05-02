@@ -1,5 +1,5 @@
 #include "rbm.h"
-
+double factor = 0.05;
 //constructor
 RBM::RBM(int h, int p, int dim, double sigma){
     std::random_device rd;
@@ -25,9 +25,9 @@ void RBM::setup_RBM(int h, int p, int dim, double sigma){
 //sets random numbers for weights and biases
 void RBM::setup_rweights(){
     rbm_x =VectorXd::Random(rbm_M);
-    rbm_a = VectorXd::Random(rbm_M);
-    rbm_b = VectorXd::Random(rbm_N);
-    rbm_W = MatrixXd::Random(rbm_M, rbm_N);
+    rbm_a = VectorXd::Random(rbm_M)*factor;
+    rbm_b = VectorXd::Random(rbm_N)*factor;
+    rbm_W = MatrixXd::Random(rbm_M, rbm_N)*factor;
 }
 
 //sets random position
