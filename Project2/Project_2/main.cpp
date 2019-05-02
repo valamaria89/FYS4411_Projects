@@ -19,7 +19,7 @@ int main()
     int NumofMC = 10000;
     int numVar = 200;
 
-   GradientDescent(P, D, N, NumofMC, numVar, sigma, omega, 0.45, 0.1);
+   GradientDescent(P, D, N, NumofMC, numVar, sigma, omega, 0.45, 0.01);
 
     RBM R(N, P, D, sigma);
     System Hamiltonian(N,P, sigma, omega );

@@ -9,7 +9,7 @@ using namespace std;
 
 void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate ){
     random_device rd;
-    mt19937 gen(rd());
+    mt19937 gen(123);
     uniform_real_distribution<> dis(0, 1);
     uniform_int_distribution<> hrand(0, 1);
 

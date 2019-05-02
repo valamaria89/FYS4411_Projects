@@ -8,9 +8,9 @@ RBM::RBM(int h, int p, int dim, double sigma){
 }
 
 //set up for RBM Machine
-void RBM::setup_RBM(int h, int p, int dim, double sigma){
+void RBM::setup_RBM(int Ninp, int p, int dim, double sigma){
     rbm_M = dim*p;
-    rbm_N = h;
+    rbm_N = Ninp;
     rbm_dim = dim;
     rbm_sigma = sigma;
     rbm_x.resize(rbm_M);
