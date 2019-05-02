@@ -72,10 +72,6 @@ VectorXd System::QuantumForce(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, dou
     return (-2*(x-a)+2*logSigm(u).transpose()*W)/pow(sigma,2);
 }
 
-
-
-
-
 double System::waveFunction(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma){
      VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
     double prod1 = 1;

@@ -26,7 +26,6 @@ public:
     VectorXd rbm_b;
     MatrixXd rbm_W;
 
-
 };
 
 #endif // RBM_H

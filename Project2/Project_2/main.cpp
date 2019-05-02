@@ -11,15 +11,15 @@ int main()
 {
     int N = 2;
 
-    int P =  2;
+    int P =  1;
     int D = 1;
 
     double sigma = 1;
     double omega = 1;
     int NumofMC = 10000;
-    int numVar = 20;
+    int numVar = 100;
 
-   GradientDescent(P, D, N, NumofMC, numVar, sigma, omega, 0.5, 0.01);
+   GradientDescent(P, D, N, NumofMC, numVar, sigma, omega, 0.45, 0.01);
 
     RBM R(N, P, D, sigma);
     System Hamiltonian(N,P, sigma, omega );

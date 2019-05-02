@@ -14,28 +14,29 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
     uniform_int_distribution<> hrand(0, 1);
 
     //RBM R(N, P, dim, sigma);
-
-
     //VectorXd Xold = R.rbm_x;
     //VectorXd Xnew = VectorXd::Zero(R.rbm_M);
-
-      //cout<<"X initial="<<Xold(0)<<endl;
-
-   // System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
-
+    //cout<<"X initial="<<Xold(0)<<endl;
+    //System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
     //cout<<Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma)<<endl;
-
     //uniform_int_distribution<> mrand(0, R.rbm_M-1);
+
     int counter = 0;
+    RBM R(N, P, dim, sigma);
+    System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
+    //VectorXd Xold = R.rbm_x;
+    VectorXd Xold = VectorXd::Zero(R.rbm_M);
 
     for (int var = 0; var < numOfvar; var++){
         //energies:
         double eng = 0, eng2= 0, delta_e =0;
-RBM R(N, P, dim, sigma);
-System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
-VectorXd Xold = R.rbm_x;
+//RBM R(N, P, dim, sigma);
+//System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
+//VectorXd Xold = R.rbm_x;
 VectorXd Xnew = VectorXd::Zero(R.rbm_M);
+Xold =VectorXd::Random(R.rbm_M);
 uniform_int_distribution<> mrand(0, R.rbm_M-1);
+
         //Derivatives of variables
         VectorXd Grad_a = VectorXd::Zero(R.rbm_M);
         VectorXd Grad_b = VectorXd::Zero(R.rbm_N);
@@ -52,10 +53,13 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
         //acceptance rate
         int accept = 0;
 
+   //cout<<"Xold= "<<Xold(0)<<endl;
         for (int cycl = 0; cycl < MCcycles; cycl ++){
             Xnew = Xold;
+            //cout<<"Xnew= "<<Xnew(0)<<endl;
             int M_random = mrand(gen);
-            Xnew(M_random) = Xold(M_random) + (2*dis(gen)-1)*step;
+            //Xnew(M_random) = Xold(M_random) + (2*dis(gen)-1)*step;
+            Xnew(M_random) = Xold(M_random) + (dis(gen)-0.5)*step;
             double wfold = Hamiltonian.waveFunction(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
             double wfnew = Hamiltonian.waveFunction(Xnew, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
 
@@ -90,8 +94,8 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
        // }
         //cout <<endl;
         //cout<<accept;
-
         //cout<<"X="<<Xnew(0)<<endl;
+
         eng /= MCcycles;
         eng2 /= MCcycles;
         Grad_a /= MCcycles;

@@ -8,8 +8,4 @@
 
 void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate );
 
-
-
-
-
 #endif // GRADIENTDESCENT_H
