@@ -38,7 +38,7 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
 
 VectorXd System::grad_a(VectorXd x, VectorXd a, double sigma){
 
-   return -(x-a)/pow(sigma,2);
+   return (x-a)/pow(sigma,2);
 
 }
 

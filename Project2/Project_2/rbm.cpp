@@ -1,5 +1,5 @@
 #include "rbm.h"
-double factor = 0.05;
+double factor = 0.1;
 //constructor
 RBM::RBM(int h, int p, int dim, double sigma){
     std::random_device rd;

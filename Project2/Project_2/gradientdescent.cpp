@@ -12,6 +12,7 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
     mt19937 gen(123);
     uniform_real_distribution<> dis(0, 1);
     uniform_int_distribution<> hrand(0, 1);
+    cout<<"Random = "<<dis(gen)<<endl;
 
     //RBM R(N, P, dim, sigma);
     //VectorXd Xold = R.rbm_x;
