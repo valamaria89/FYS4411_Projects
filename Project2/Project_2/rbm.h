@@ -13,6 +13,8 @@ private:
     void setup_RBM(int h, int x, int dim, double sigma);
     void setup_rweights();
     void setup_rposition();
+    void setup_hidden_layer();
+
 public:
     RBM(int h, int x, int dim, double sigma);
     ~RBM(){}
@@ -25,7 +27,7 @@ public:
     VectorXd rbm_a;
     VectorXd rbm_b;
     MatrixXd rbm_W;
-
+    double pick_x(int i_M);
 };
 
 #endif // RBM_H

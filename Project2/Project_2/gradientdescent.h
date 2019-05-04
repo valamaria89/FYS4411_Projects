@@ -6,6 +6,6 @@
 #include <Eigen/Dense>
 #include <random>
 
-void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate );
+void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate, int samp,double difConst,double timeStep );
 
 #endif // GRADIENTDESCENT_H
