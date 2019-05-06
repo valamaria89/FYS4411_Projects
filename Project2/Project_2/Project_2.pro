@@ -7,11 +7,13 @@ SOURCES += \
         main.cpp \
     system.cpp \
     rbm.cpp \
-    gradientdescent.cpp
+    gradientdescent.cpp \
+    checkfunctions.cpp
 
 HEADERS += \
     matrix.h \
     system.h \
     system.h \
     rbm.h \
-    gradientdescent.h
+    gradientdescent.h \
+    checkfunctions.h

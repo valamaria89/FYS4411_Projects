@@ -1,0 +1,4 @@
+#ifndef CHECKFUNCTIONS_H
+#define CHECKFUNCTIONS_H
+
+#endif // CHECKFUNCTIONS_H

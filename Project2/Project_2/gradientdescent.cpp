@@ -7,11 +7,13 @@ using namespace std;
 // RNG
 
 
-void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate ){
+void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate, int samp,double difConst,double timeStep){
     random_device rd;
-    mt19937 gen(123);
+    mt19937 gen(rd());
     uniform_real_distribution<> dis(0, 1);
     uniform_int_distribution<> hrand(0, 1);
+    normal_distribution<double> gauss(0,1);
+    cout<<"Random = "<<dis(gen)<<endl;
 
     //RBM R(N, P, dim, sigma);
     //VectorXd Xold = R.rbm_x;
@@ -52,6 +54,7 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
 
         //acceptance rate
         int accept = 0;
+        double condition=0;
 
    //cout<<"Xold= "<<Xold(0)<<endl;
         for (int cycl = 0; cycl < MCcycles; cycl ++){
@@ -59,32 +62,47 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
             //cout<<"Xnew= "<<Xnew(0)<<endl;
             int M_random = mrand(gen);
             //Xnew(M_random) = Xold(M_random) + (2*dis(gen)-1)*step;
+            if(samp==0){
             Xnew(M_random) = Xold(M_random) + (dis(gen)-0.5)*step;
             double wfold = Hamiltonian.waveFunction(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
             double wfnew = Hamiltonian.waveFunction(Xnew, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
-
-            if (wfnew*wfnew/wfold*wfold >= dis(gen)){
+            condition = wfnew*wfnew/wfold*wfold;
+            }
+            double GreenFunc=0;
+            if(samp==1){
+            Xnew(M_random) = Xold(M_random) + difConst*Hamiltonian.QuantumForce(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma,M_random)*timeStep + gauss(gen)*sqrt(timeStep);
+            double wfold = Hamiltonian.waveFunction(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
+            double wfnew = Hamiltonian.waveFunction(Xnew, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
+            GreenFunc=Hamiltonian.GreenFunction(Xold,Xnew,R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma,0,P,difConst, timeStep);
+            condition = GreenFunc*wfnew*wfnew/wfold*wfold;
+            }
+            if((samp==0)||(samp==1)){
+            if (condition >= dis(gen)){
                 accept++;
                 Xold = Xnew;
-
+               }
             }
 
-            delta_e = Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
+
+            if(samp==2){
+                Xold(M_random) = R.pick_x (M_random);
+            }
+            delta_e = Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma,samp);
 
             //Summation of energies
             eng += delta_e;
             eng2 += pow(delta_e,2);
 
           //Derivatives of variables
-            Grad_a += Hamiltonian.grad_a(Xold, R.rbm_a, R.rbm_sigma);
-            Grad_b += Hamiltonian.grad_b(Xold, R.rbm_b, R.rbm_W, R.rbm_sigma);
-            Grad_W += Hamiltonian.grad_W(Xold, R.rbm_b,R.rbm_W, R.rbm_sigma);
+            Grad_a += Hamiltonian.grad_a(Xold, R.rbm_a, R.rbm_sigma,samp);
+            Grad_b += Hamiltonian.grad_b(Xold, R.rbm_b, R.rbm_W, R.rbm_sigma,samp);
+            Grad_W += Hamiltonian.grad_W(Xold, R.rbm_b,R.rbm_W, R.rbm_sigma,samp);
             Grad_sigma += Hamiltonian.grad_sigma(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
 
              //Multiplied with energy
-            Eng_Grad_a += Hamiltonian.grad_a(Xold, R.rbm_a, R.rbm_sigma)*delta_e;
-            Eng_Grad_b += Hamiltonian.grad_b(Xold, R.rbm_b, R.rbm_W, R.rbm_sigma)*delta_e;
-            Eng_Grad_W += Hamiltonian.grad_W(Xold, R.rbm_b,R.rbm_W, R.rbm_sigma)*delta_e;
+            Eng_Grad_a += Hamiltonian.grad_a(Xold, R.rbm_a, R.rbm_sigma,samp)*delta_e;
+            Eng_Grad_b += Hamiltonian.grad_b(Xold, R.rbm_b, R.rbm_W, R.rbm_sigma,samp)*delta_e;
+            Eng_Grad_W += Hamiltonian.grad_W(Xold, R.rbm_b,R.rbm_W, R.rbm_sigma,samp)*delta_e;
             Eng_Grad_sigma += Hamiltonian.grad_sigma(Xold, R.rbm_a, R.rbm_b,R.rbm_W, R.rbm_sigma)*delta_e;
 
         }
