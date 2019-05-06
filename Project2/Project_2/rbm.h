@@ -28,6 +28,7 @@ public:
     VectorXd rbm_b;
     MatrixXd rbm_W;
     double pick_x(int i_M);
+    double pick_h(int i_N);
 };
 
 #endif // RBM_H

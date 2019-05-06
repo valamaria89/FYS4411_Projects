@@ -53,6 +53,20 @@ double RBM::pick_x(int i_M){
     for(int j=0;j<rbm_N;j++){
         mean+=rbm_h(j)*rbm_W(i_M,j);
 }
-    std::normal_distribution<double> gauss(mean,rbm_sigma);
+     std::normal_distribution<double> gauss(mean,rbm_sigma);
        return gauss(rbm_randomEngine);
+}
+
+double RBM::pick_h(int i_N){
+    std::uniform_int_distribution<int> distribution_H(0,1);
+    VectorXd u = rbm_b + (rbm_x.transpose()*rbm_W).transpose()/pow(rbm_sigma,2);
+    double P_H0 = 1/(1+exp(-u(i_N)));
+    double P_H1 = 1/(1+exp(u(i_N)));
+    if(distribution_H(rbm_randomEngine) <= P_H0){
+        return 0;
+    }
+    else {
+        return 1;
+    }
+
 }

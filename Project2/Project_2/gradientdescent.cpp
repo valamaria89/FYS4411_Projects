@@ -7,7 +7,7 @@ using namespace std;
 // RNG
 
 
-void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate, int samp,double difConst,double timeStep){
+void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double sigma, double omega, double step, double learnRate, int samp,double difConst,double timeStep, bool interact){
     random_device rd;
     mt19937 gen(rd());
     uniform_real_distribution<> dis(0, 1);
@@ -29,6 +29,7 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
     //VectorXd Xold = R.rbm_x;
     VectorXd Xold = VectorXd::Zero(R.rbm_M);
 
+
     for (int var = 0; var < numOfvar; var++){
         //energies:
         double eng = 0, eng2= 0, delta_e =0;
@@ -38,6 +39,8 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
 VectorXd Xnew = VectorXd::Zero(R.rbm_M);
 Xold =VectorXd::Random(R.rbm_M);
 uniform_int_distribution<> mrand(0, R.rbm_M-1);
+uniform_int_distribution<> nrand(0, R.rbm_N-1);
+
 
         //Derivatives of variables
         VectorXd Grad_a = VectorXd::Zero(R.rbm_M);
@@ -61,6 +64,7 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
             Xnew = Xold;
             //cout<<"Xnew= "<<Xnew(0)<<endl;
             int M_random = mrand(gen);
+            int N_random = nrand(gen);
             //Xnew(M_random) = Xold(M_random) + (2*dis(gen)-1)*step;
             if(samp==0){
             Xnew(M_random) = Xold(M_random) + (dis(gen)-0.5)*step;
@@ -86,8 +90,9 @@ uniform_int_distribution<> mrand(0, R.rbm_M-1);
 
             if(samp==2){
                 Xold(M_random) = R.pick_x (M_random);
+                R.rbm_h(N_random) = R.pick_h(N_random);
             }
-            delta_e = Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma,samp);
+            delta_e = Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma,samp, interact, P);
 
             //Summation of energies
             eng += delta_e;

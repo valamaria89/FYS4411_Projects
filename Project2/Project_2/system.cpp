@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <math.h>
 #include "system.h"
 #include "matrix.h"
 
@@ -7,7 +8,7 @@
 System::System(int inp_N, int inp_M, double inp_sigma, double inp_omega):s_N(inp_N), s_M(inp_M),s_sigma(inp_sigma),s_omega(inp_omega){
 }
 
-double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma, int samp){
+double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma, int samp, bool interact, int P){
    double coeff=1;
    VectorXd u = b + (x.transpose()*W).transpose()/pow(sigma,2);
    if(samp==2)
@@ -17,6 +18,7 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
    double E_kin = 0;
    double E_pot = 0;
    double E_loc = 0;
+   double E_interact = 0;
 
    for(int i =0;i<s_M;i++){
        double sum_1=0;
@@ -32,8 +34,24 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
          E_kin += -(d2lnPsi+d1lnPsi*d1lnPsi)/2;
          E_pot += x(i)*x(i)*s_omega*s_omega/2;
    }
+   if (interact == true){
+       int Dim = s_M/P;
+       for (int par1 = 0; par1 < P; par1++){
+           for (int par2 = 0; par2 > par1; par2 ++){
+               double sum = 0;
+               for (int di = 0; di < Dim; di ++){
+                   int par_i = Dim*par1+di;
+                   int par_j = Dim*par2*di;
 
-   E_loc = E_kin+E_pot;
+                   sum += (x(par_i) - x(par_j))*(x(par_i) - x(par_j));
+               }
+               E_interact += 1/sqrt(sum);
+           }
+       }
+
+   }
+
+   E_loc = E_kin+E_pot+E_interact;
 
    return E_loc;
 }

@@ -11,7 +11,7 @@ public:
     System(int inp_N, int inp_M, double inp_sigma, double inp_omega);
     ~System(){}
 
-    double localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma, int samp);
+    double localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double sigma, int samp, bool interact, int P);
     VectorXd grad_a(VectorXd x, VectorXd a, double sigma, int samp);
     VectorXd grad_b(VectorXd x, VectorXd b, MatrixXd W, double sigma,int samp);
     MatrixXd grad_W(VectorXd x, VectorXd b, MatrixXd W, double sigma,int samp);
