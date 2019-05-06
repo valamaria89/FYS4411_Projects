@@ -86,8 +86,6 @@ uniform_int_distribution<> nrand(0, R.rbm_N-1);
                 Xold = Xnew;
                }
             }
-
-
             if(samp==2){
                 Xold(M_random) = R.pick_x (M_random);
                 R.rbm_h(N_random) = R.pick_h(N_random);
@@ -104,7 +102,7 @@ uniform_int_distribution<> nrand(0, R.rbm_N-1);
             Grad_W += Hamiltonian.grad_W(Xold, R.rbm_b,R.rbm_W, R.rbm_sigma,samp);
             Grad_sigma += Hamiltonian.grad_sigma(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma);
 
-             //Multiplied with energy
+          //Multiplied with energy
             Eng_Grad_a += Hamiltonian.grad_a(Xold, R.rbm_a, R.rbm_sigma,samp)*delta_e;
             Eng_Grad_b += Hamiltonian.grad_b(Xold, R.rbm_b, R.rbm_W, R.rbm_sigma,samp)*delta_e;
             Eng_Grad_W += Hamiltonian.grad_W(Xold, R.rbm_b,R.rbm_W, R.rbm_sigma,samp)*delta_e;

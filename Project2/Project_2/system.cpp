@@ -19,6 +19,9 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
    double E_pot = 0;
    double E_loc = 0;
    double E_interact = 0;
+   int Dim = s_M/P;
+   int par_i=0;
+   int par_j=0;
 
    for(int i =0;i<s_M;i++){
        double sum_1=0;
@@ -34,21 +37,20 @@ double System::localEnergy(VectorXd x, VectorXd a,VectorXd b, MatrixXd W, double
          E_kin += -(d2lnPsi+d1lnPsi*d1lnPsi)/2;
          E_pot += x(i)*x(i)*s_omega*s_omega/2;
    }
-   if (interact == true){
-       int Dim = s_M/P;
-       for (int par1 = 0; par1 < P; par1++){
-           for (int par2 = 0; par2 > par1; par2 ++){
+   if (interact){
+       for (int par1 = 1; par1 < P; par1++){
+           for (int par2 = 0; par2 < par1; par2++){
                double sum = 0;
                for (int di = 0; di < Dim; di ++){
-                   int par_i = Dim*par1+di;
-                   int par_j = Dim*par2*di;
-
-                   sum += (x(par_i) - x(par_j))*(x(par_i) - x(par_j));
+                    par_i = Dim*par1+di;
+                    par_j = Dim*par2+di;
+                    sum += (x(par_i) - x(par_j))*(x(par_i) - x(par_j));
                }
+               if(sqrt(sum)>0.00005){
                E_interact += 1/sqrt(sum);
+               }
            }
        }
-
    }
 
    E_loc = E_kin+E_pot+E_interact;
