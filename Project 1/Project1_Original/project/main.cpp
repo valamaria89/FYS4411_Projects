@@ -2,9 +2,10 @@
 #include <random>
 #include <fstream>
 #include "time.h"
-#include "exercises.h"
+//#include "exercises.h"
 #include "matrix.h"
 #include "methods_interaction.h"
+#include "methods.h"
 
 using namespace std;
 
