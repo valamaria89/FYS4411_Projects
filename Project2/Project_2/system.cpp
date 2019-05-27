@@ -146,7 +146,7 @@ double System::GreenFunction(VectorXd xold,VectorXd xnew, VectorXd a,VectorXd b,
         }
         return total_G;
     }
-    if(par==1){
+    else{
     for(int i=0; i<P; i++) {
             for(int j=0; j<dim; j++) {
                 int index = dim*i+j;
