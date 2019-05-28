@@ -12,29 +12,28 @@ using namespace std;
 
 int main()
 { MPI_Init(nullptr, nullptr);
-    int N = 2;
+    int N = 1;
 
-    int P =  2;
-    int D = 2;
+    int P =  1;
+    int D = 1;
 
     double sigma = 1;
     double omega = 1;
-    int NumofMC = 2000;
-    int numVar = 50000;
-    int samp=1;
-    bool interact = true;
-    cout << "Hei" << endl;
-   GradientDescent(P, D, N, NumofMC, numVar, sigma, omega, 0.45, 0.01,samp,0.5,0.1, interact);
+    int NumofMC = 1000000;
+    int numVar = 200;
+    int samp=0;
+    bool interact = false;
+    double stepsize = 0.1;
+    double learnRate = 0.1;
+    double diffConst = 0.5;
+    double timestep = 0.01;
+
+   GradientDescent(P, D, N, NumofMC, numVar, sigma, omega, stepsize, learnRate ,samp,diffConst,timestep, interact);
 
     RBM R(N, P, D, sigma);
     System Hamiltonian(N,P, sigma, omega );
 
-/* cout << "Hei!" << endl;
- VectorXd a =VectorXd::Random(5);
- for(int i=0;i<5;i++){
-     cout<<a(i)<<" "<<endl;
 
- }*/
     MPI_Finalize();
 }
 

@@ -1,5 +1,6 @@
 #include "gradientdescent.h"
 #include "mpi.h"
+#include <fstream>
 
 
 using namespace Eigen;
@@ -24,12 +25,13 @@ void GradientDescent( int P, int dim, int N, int MCcycles, int numOfvar, double 
     //cout<<Hamiltonian.localEnergy(Xold, R.rbm_a, R.rbm_b, R.rbm_W, R.rbm_sigma)<<endl;
     //uniform_int_distribution<> mrand(0, R.rbm_M-1);
 
-    int counter = 0;
+    //int counter = 0;
     RBM R(N, P, dim, sigma);
     System Hamiltonian(R.rbm_N,R.rbm_M, R.rbm_sigma, omega );
     //VectorXd Xold = R.rbm_x;
     VectorXd Xold = VectorXd::Zero(R.rbm_M);
-
+    ofstream fileblock;
+    fileblock.open("BruteForce_testing.txt");
 
     for (int var = 0; var < numOfvar; var++){
         //energies:
@@ -157,12 +159,16 @@ uniform_int_distribution<> nrand(0, R.rbm_N-1);
         R.rbm_b -= 2*learnRate*(global_Eng_Grad_b/MCcycles - global_eng*global_Grad_b);
         R.rbm_W -= 2*learnRate*(global_Eng_Grad_W/MCcycles - global_eng*global_Grad_W);
         R.rbm_sigma -= 0; //2*learnRate*(Eng_Grad_sigma/MCcycles - eng*Grad_sigma);
-
+        //int n = 10;
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         if (rank ==0){
-        cout <<"Energy = " <<global_eng<< " Variance = "<<global_eng2-global_eng*global_eng<< " Acceptance = " << global_accept << endl;
+
+        fileblock << var << " " << global_eng << " " << global_eng2-global_eng*global_eng << " "<< global_accept << " " << endl;
+        cout << "Energy = " <<global_eng<< " Variance = "<<global_eng2-global_eng*global_eng<< " Acceptance = " << global_accept << endl;
         }
+
+
 /*if((global_eng<0.6)&&(eng>0.45)){
 counter++;
 }
@@ -170,4 +176,5 @@ counter++;
     cout<< "Counter="<<counter<<endl;
 */
 }
+     fileblock.close();
 }
